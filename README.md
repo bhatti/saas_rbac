@@ -52,7 +52,7 @@ The condition contains a Javascript based logical expressions and provides acces
 
 SaasRRBAC consists of following layers
 ### Business Domain Layer
-<img src="https://raw.githubusercontent.com/bhatti/PlexRBACJS/master/images/rbacjs_domain.png">
+<img src="https://raw.githubusercontent.com/bhatti/saas_rbac/master/images/uml.png">
 
 This layer defines core classes that are part of the RBAC based security realm such as:
 
