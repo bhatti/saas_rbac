@@ -1,0 +1,26 @@
+[package]
+name = "rrbac"
+version = "0.1.0"
+authors = ["Shahzad Bhatti <bhatti@plexobject.com>"]
+
+[dependencies]
+rocket = "0.4.1"
+rocket_codegen = "0.4.1"
+serde = "1.0"
+serde_json = "1.0"
+serde_derive = "1.0"
+diesel = { version = "1.4.0", features = ["sqlite", "chrono"] }
+dotenv = { version = "0.10.1" }
+r2d2 = "*"
+r2d2-diesel = "*"
+chrono = { version = "0.4", features = ["serde"] }
+uuid = { version = "0.7", features = ["serde", "v4"]}
+log = "0.4"
+env_logger = "0.6.2"
+evalexpr = "4.1.0"
+regex = "1"
+
+[dependencies.rocket_contrib]
+version = "*"
+default-features = false
+features = ["json"]
