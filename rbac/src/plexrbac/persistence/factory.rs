@@ -73,9 +73,9 @@ impl RepositoryFactory {
         super::resource_instance_repository::ResourceInstanceRepository{factory: self, audit_record_repository: self.new_audit_record_repository()}
     }
 
-    /// Creates resource-limit repository for persisting resource-limits
-    pub fn new_resource_limit_repository(&self) -> super::resource_limit_repository::ResourceLimitRepository {
-        super::resource_limit_repository::ResourceLimitRepository{factory: self, audit_record_repository: self.new_audit_record_repository()}
+    /// Creates resource-quota repository for persisting resource-quotas
+    pub fn new_resource_quota_repository(&self) -> super::resource_quota_repository::ResourceQuotaRepository {
+        super::resource_quota_repository::ResourceQuotaRepository{factory: self, audit_record_repository: self.new_audit_record_repository()}
     }
 
     /// Creates instance of role repository for persisting roles that are available for
@@ -115,7 +115,7 @@ impl RepositoryFactory {
             group_principal_repository: self.new_group_principal_repository(),
             resource_repository: self.new_resource_repository(),
             resource_instance_repository: self.new_resource_instance_repository(),
-            resource_limit_repository: self.new_resource_limit_repository(),
+            resource_quota_repository: self.new_resource_quota_repository(),
             role_repository: self.new_role_repository(),
             role_roleable_repository: self.new_role_roleable_repository(),
             claim_repository: self.new_claim_repository(),

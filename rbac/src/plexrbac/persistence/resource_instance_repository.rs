@@ -14,13 +14,27 @@ pub struct ResourceInstanceRepository<'a> {
 
 impl<'a> ResourceInstanceRepository<'a> {
     /// Returns all resource instances for given resource
-    pub fn get_by_resource(&self, resource_id: &str) -> Vec<PResourceInstance> {
+    pub fn get_by_resource(&self, resource_id: &str, scope: &str) -> Vec<PResourceInstance> {
         let connection = self.factory.new_connection();
         match rbac_resource_instances::table
             .filter(rbac_resource_instances::resource_id.eq(resource_id.to_string()))
+            .filter(rbac_resource_instances::scope.eq(scope.to_string()))
             .load::<PResourceInstance>(&*connection) {
             Ok(v) => v,
             _ => vec![],
+        }
+    }
+
+    /// Count all resource instances for given resource
+    pub fn count_by_resource(&self, resource_id: &str, scope: &str) -> i64 {
+        let connection = self.factory.new_connection();
+        match rbac_resource_instances::table
+            .filter(rbac_resource_instances::resource_id.eq(resource_id.to_string()))
+            .filter(rbac_resource_instances::scope.eq(scope.to_string()))
+            .count()
+            .get_result(&*connection) {
+            Ok(len) => len,
+            Err(_) => 0,
         }
     }
 
@@ -88,7 +102,7 @@ mod tests {
         let repo = factory.new_resource_instance_repository();
         repo.clear();
 
-        let instance = PResourceInstance::new(Uuid::new_v4().to_hyphenated().to_string().as_str(), "11", "22", "report", "ref", "INFLIGHT", None);
+        let instance = PResourceInstance::new(Uuid::new_v4().to_hyphenated().to_string().as_str(), "11", "22", "", "ref", "INFLIGHT", None);
         let instance_str = format!("{:?}", instance);
         repo.create(&instance);
 
@@ -102,7 +116,7 @@ mod tests {
         let repo = factory.new_resource_instance_repository();
         repo.clear();
 
-        let instance = PResourceInstance::new(Uuid::new_v4().to_hyphenated().to_string().as_str(), "11", "22", "report", "ref", "INFLIGHT", None);
+        let instance = PResourceInstance::new(Uuid::new_v4().to_hyphenated().to_string().as_str(), "11", "22", "", "ref", "INFLIGHT", None);
         repo.create(&instance);
 
         let mut loaded = repo.get(instance.id.as_str()).unwrap();
@@ -118,7 +132,7 @@ mod tests {
         let repo = factory.new_resource_instance_repository();
         repo.clear();
 
-        let instance = PResourceInstance::new(Uuid::new_v4().to_hyphenated().to_string().as_str(), "11", "22", "report", "ref", "INFLIGHT", None);
+        let instance = PResourceInstance::new(Uuid::new_v4().to_hyphenated().to_string().as_str(), "11", "22", "", "ref", "INFLIGHT", None);
         repo.create(&instance);
         repo.delete(instance.id.as_str());
         let loaded = repo.get(instance.id.as_str());
@@ -131,10 +145,10 @@ mod tests {
         let repo = factory.new_resource_instance_repository();
         repo.clear();
 
-        repo.create(&PResourceInstance::new(Uuid::new_v4().to_hyphenated().to_string().as_str(), "11", "22", "report", "ref", "INFLIGHT", None));
-        repo.create(&PResourceInstance::new(Uuid::new_v4().to_hyphenated().to_string().as_str(), "11", "33", "report", "ref", "INFLIGHT", None));
+        repo.create(&PResourceInstance::new(Uuid::new_v4().to_hyphenated().to_string().as_str(), "911", "22", "", "ref", "INFLIGHT", None));
+        repo.create(&PResourceInstance::new(Uuid::new_v4().to_hyphenated().to_string().as_str(), "911", "33", "", "ref", "INFLIGHT", None));
 
-        let results = repo.get_by_resource("11");
+        let results = repo.get_by_resource("911", "");
         assert_eq!(2, results.len());
     }
 }

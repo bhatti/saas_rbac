@@ -282,7 +282,7 @@ pub struct Resource {
     pub description: Option<String>,
     pub allowable_actions: Option<String>,
     pub instances: HashMap<String, ResourceInstance>,
-    pub limits: HashMap<String, ResourceLimit>,
+    pub quotas: HashMap<String, ResourceQuota>,
     pub created_by: Option<String>,
     pub created_at: NaiveDateTime,
     pub updated_by: Option<String>,
@@ -305,7 +305,7 @@ impl Resource {
             description: resource.description.clone(),
             allowable_actions: resource.allowable_actions.clone(),
             instances: HashMap::new(),
-            limits: HashMap::new(),
+            quotas: HashMap::new(),
             created_at: resource.created_at.clone(),
             created_by: resource.created_by.clone(),
             updated_at: resource.updated_at.clone(),
@@ -326,7 +326,7 @@ impl Resource {
             description: description,
             allowable_actions: allowable_actions,
             instances: HashMap::new(),
-            limits: HashMap::new(),
+            quotas: HashMap::new(),
             created_at: Utc::now().naive_utc(),
             created_by: None,
             updated_at: Utc::now().naive_utc(),
@@ -340,8 +340,8 @@ impl Resource {
 pub struct ResourceInstance {
     pub id: String,
     pub resource_id: String,
-    pub resourceable_id: String,
-    pub resourceable_type: String,
+    pub license_policy_id: String,
+    pub scope: String,
     pub ref_id: String,
     pub status: String,
     pub description: Option<String>,
@@ -357,8 +357,8 @@ impl ResourceInstance {
         ResourceInstance {
             id: instance.id.clone(),
             resource_id: instance.resource_id.clone(),
-            resourceable_id: instance.resourceable_id.clone(),
-            resourceable_type: instance.resourceable_type.clone(),
+            scope: instance.scope.clone(),
+            license_policy_id: instance.license_policy_id.clone(),
             ref_id: instance.ref_id.clone(),
             status: instance.status.clone(),
             description: instance.description.clone(),
@@ -371,15 +371,15 @@ impl ResourceInstance {
 
     /// Creates instance of persistent resource instance
     pub fn to(&self) -> PResourceInstance {
-        PResourceInstance::new(self.id.as_str(), self.resource_id.as_str(), self.resourceable_id.as_str(), self.resourceable_type.as_str(), self.ref_id.as_str(), self.status.as_str(), self.description.clone())
+        PResourceInstance::new(self.id.as_str(), self.resource_id.as_str(), self.license_policy_id.as_str(), self.scope.as_str(), self.ref_id.as_str(), self.status.as_str(), self.description.clone())
     }
 
-    pub fn new(id: &str, resource_id: &str, resourceable_id: &str, resourceable_type: &str, ref_id: &str, status: &str, description: Option<String>) -> ResourceInstance {
+    pub fn new(id: &str, resource_id: &str, license_policy_id: &str, scope: &str, ref_id: &str, status: &str, description: Option<String>) -> ResourceInstance {
         ResourceInstance {
             id: id.to_string(),
             resource_id: resource_id.to_string(),
-            resourceable_id: resourceable_id.to_string(),
-            resourceable_type: resourceable_type.to_string(),
+            license_policy_id: license_policy_id.to_string(),
+            scope: scope.to_string(),
             ref_id: ref_id.to_string(),
             status: status.to_string(),
             description: description,
@@ -391,13 +391,13 @@ impl ResourceInstance {
     }
 }
 
-/// ResourceLimit represents max limit for number of instances of target object
+/// ResourceQuota represents max quota for number of instances of target object
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct ResourceLimit {
+pub struct ResourceQuota {
     pub id: String,
     pub resource_id: String,
-    pub limitable_id: String,
-    pub limitable_type: String,
+    pub scope: String,
+    pub license_policy_id: String,
     pub max_value: i32,
     pub effective_at: NaiveDateTime,
     pub expired_at: NaiveDateTime,
@@ -407,35 +407,35 @@ pub struct ResourceLimit {
     pub updated_at: NaiveDateTime,
 }
 
-impl ResourceLimit {
-    /// Creates limit from persistent resource limit
-    pub fn from(limit: &PResourceLimit) -> ResourceLimit {
-        ResourceLimit {
-            id: limit.id.clone(),
-            resource_id: limit.resource_id.clone(),
-            limitable_id: limit.limitable_id.clone(),
-            limitable_type: limit.limitable_type.clone(),
-            max_value: limit.max_value.clone(),
-            effective_at: limit.effective_at.clone(),
-            expired_at: limit.expired_at.clone(),
-            created_at: limit.created_at.clone(),
-            created_by: limit.created_by.clone(),
-            updated_at: limit.updated_at.clone(),
-            updated_by: limit.updated_by.clone()
+impl ResourceQuota {
+    /// Creates quota from persistent resource quota
+    pub fn from(quota: &PResourceQuota) -> ResourceQuota {
+        ResourceQuota {
+            id: quota.id.clone(),
+            resource_id: quota.resource_id.clone(),
+            license_policy_id: quota.license_policy_id.clone(),
+            scope: quota.scope.clone(),
+            max_value: quota.max_value.clone(),
+            effective_at: quota.effective_at.clone(),
+            expired_at: quota.expired_at.clone(),
+            created_at: quota.created_at.clone(),
+            created_by: quota.created_by.clone(),
+            updated_at: quota.updated_at.clone(),
+            updated_by: quota.updated_by.clone()
         }
     }
 
-    /// Creates limit of persistent resource limit
-    pub fn to(&self) -> PResourceLimit {
-        PResourceLimit::new(self.id.as_str(), self.resource_id.as_str(), self.limitable_id.as_str(), self.limitable_type.as_str(), self.max_value, self.effective_at.clone(), self.expired_at.clone())
+    /// Creates quota of persistent resource quota
+    pub fn to(&self) -> PResourceQuota {
+        PResourceQuota::new(self.id.as_str(), self.resource_id.as_str(), self.license_policy_id.as_str(), self.scope.as_str(), self.max_value, self.effective_at.clone(), self.expired_at.clone())
     }
 
-    pub fn new(id: &str, resource_id: &str, limitable_id: &str, limitable_type: &str, max_value: i32, effective_at: NaiveDateTime, expired_at: NaiveDateTime) -> ResourceLimit {
-        ResourceLimit {
+    pub fn new(id: &str, resource_id: &str, license_policy_id: &str, scope: &str, max_value: i32, effective_at: NaiveDateTime, expired_at: NaiveDateTime) -> ResourceQuota {
+        ResourceQuota {
             id: id.to_string(),
             resource_id: resource_id.to_string(),
-            limitable_id: limitable_id.to_string(),
-            limitable_type: limitable_type.to_string(),
+            license_policy_id: license_policy_id.to_string(),
+            scope: scope.to_string(),
             max_value: max_value,
             effective_at: effective_at,
             expired_at: expired_at,
@@ -720,14 +720,14 @@ mod tests {
 
     #[test]
     fn test_create_resource_instance() {
-        let r = ResourceInstance::new(Uuid::new_v4().to_hyphenated().to_string().as_str(), "11", "22", "app", "ref", "INFLIGHT", None);
-        assert_eq!("app", r.resourceable_type);
+        let r = ResourceInstance::new(Uuid::new_v4().to_hyphenated().to_string().as_str(), "11", "22", "", "ref", "INFLIGHT", None);
+        assert_eq!("22", r.license_policy_id);
     }
 
     #[test]
-    fn test_create_resource_limit() {
-        let r = ResourceLimit::new(Uuid::new_v4().to_hyphenated().to_string().as_str(), "11", "22", "app", 0, Utc::now().naive_utc(), NaiveDate::from_ymd(2100, 1, 1).and_hms(0, 0, 0));
-        assert_eq!("app", r.limitable_type);
+    fn test_create_resource_quota() {
+        let r = ResourceQuota::new(Uuid::new_v4().to_hyphenated().to_string().as_str(), "11", "22", "", 0, Utc::now().naive_utc(), NaiveDate::from_ymd(2100, 1, 1).and_hms(0, 0, 0));
+        assert_eq!("22", r.license_policy_id);
     }
 
     #[test]

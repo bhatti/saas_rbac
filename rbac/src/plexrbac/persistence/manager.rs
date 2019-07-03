@@ -4,11 +4,13 @@ extern crate uuid as uuu;
 use super::models::*;
 use plexrbac::domain::models::*;
 use plexrbac::common::Constants;
+use plexrbac::common::Status;
 use plexrbac::security::context::SecurityContext;
 use chrono::{NaiveDate, NaiveDateTime, Utc};
 use log::{info, warn};
 use self::uuu::Uuid;
 use std::collections::HashMap;
+use plexrbac::common::RbacError;
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 /// PersistenceManager defines high-level methods for accessing rbac entities
@@ -21,7 +23,7 @@ pub struct PersistenceManager<'a> {
     pub group_principal_repository: super::group_principal_repository::GroupPrincipalRepository<'a>,
     pub resource_repository: super::resource_repository::ResourceRepository<'a>,
     pub resource_instance_repository: super::resource_instance_repository::ResourceInstanceRepository<'a>,
-    pub resource_limit_repository: super::resource_limit_repository::ResourceLimitRepository<'a>,
+    pub resource_quota_repository: super::resource_quota_repository::ResourceQuotaRepository<'a>,
     pub role_repository: super::role_repository::RoleRepository<'a>,
     pub role_roleable_repository: super::role_roleable_repository::RoleRoleableRepository<'a>,
     pub claim_repository: super::claim_repository::ClaimRepository<'a>,
@@ -33,18 +35,18 @@ pub struct PersistenceManager<'a> {
 impl<'a> PersistenceManager<'a> {
     ////////////////////////////////// SECURITY REALM CRUD OPERATIONS //////////////////////////////
     /// Creates or updates security realm
-    pub fn new_realm_with(&self, ctx: &SecurityContext, name: &str) -> Result<SecurityRealm, diesel::result::Error> {
+    pub fn new_realm_with(&self, ctx: &SecurityContext, name: &str) -> Result<SecurityRealm, RbacError> {
         self.save_realm(ctx, &SecurityRealm::new(name, ""))
     }
     /// Creates or updates security realm
-    pub fn save_realm(&self, ctx: &SecurityContext, realm: &SecurityRealm) -> Result<SecurityRealm, diesel::result::Error> {
+    pub fn save_realm(&self, ctx: &SecurityContext, realm: &SecurityRealm) -> Result<SecurityRealm, RbacError> {
         match self.realm_repository.get(realm.id.as_str()) {
             Ok(mut db_obj) => {
                 db_obj.description = realm.description.clone();
                 db_obj.updated_at = Utc::now().naive_utc();
                 db_obj.updated_by = Some(ctx.principal_id.clone());
                 if let Some(err) = self.realm_repository.update(&db_obj) {
-                    return Err(err);
+                    return Err(RbacError::Persistence(err.to_string()));
                 }
                 self.audit(ctx, format!("Updating realm {:?}", db_obj), "UPDATE");
                 info!("Updating realm {:?}", db_obj);
@@ -57,7 +59,7 @@ impl<'a> PersistenceManager<'a> {
                 db_obj.updated_at = Utc::now().naive_utc();
                 db_obj.updated_by = Some(ctx.principal_id.clone());
                 if let Some(err) = self.realm_repository.create(&db_obj) {
-                    return Err(err);
+                    return Err(RbacError::Persistence(err.to_string()));
                 }
                 self.audit(ctx, format!("Creating new realm realm {:?}", db_obj), "CREATE");
                 info!("Creating realm {:?}", db_obj);
@@ -75,11 +77,11 @@ impl<'a> PersistenceManager<'a> {
 
     ////////////////////////////////// ORGANIZATION CRUD OPERATIONS //////////////////////////////
     /// Creates or updates organization
-    pub fn new_org_with(&self, ctx: &SecurityContext, name: &str) -> Result<Organization, diesel::result::Error> {
+    pub fn new_org_with(&self, ctx: &SecurityContext, name: &str) -> Result<Organization, RbacError> {
         self.save_org(ctx, &Organization::new("", None, name, "", None))
     }
     /// Creates or updates organization
-    pub fn save_org(&self, ctx: &SecurityContext, org: &Organization) -> Result<Organization, diesel::result::Error> {
+    pub fn save_org(&self, ctx: &SecurityContext, org: &Organization) -> Result<Organization, RbacError> {
         match self.org_repository.get(org.id.as_str()) {
             Some(mut db_obj) => {
                 db_obj.url = org.url.clone();
@@ -87,7 +89,7 @@ impl<'a> PersistenceManager<'a> {
                 db_obj.updated_at = Utc::now().naive_utc();
                 db_obj.updated_by = Some(ctx.principal_id.clone());
                 if let Some(err) = self.org_repository.update(&db_obj) {
-                    return Err(err);
+                    return Err(RbacError::Persistence(err.to_string()));
                 }
                 info!("Updating organization {:?}", db_obj);
                 self.audit(ctx, format!("Updating org {:?}", db_obj), "UPDATE");
@@ -101,7 +103,7 @@ impl<'a> PersistenceManager<'a> {
                 db_obj.updated_at = Utc::now().naive_utc();
                 db_obj.updated_by = Some(ctx.principal_id.clone());
                 if let Some(err) = self.org_repository.create(&db_obj) {
-                    return Err(err);
+                    return Err(RbacError::Persistence(err.to_string()));
                 }
                 self.audit(ctx, format!("Creating new org {:?}", db_obj), "CREATE");
                 info!("Creating organization {:?}", db_obj);
@@ -162,19 +164,19 @@ impl<'a> PersistenceManager<'a> {
 
     ////////////////////////////////// Principal CRUD OPERATIONS //////////////////////////////
     /// Creates principal
-    pub fn new_principal_with(&self, ctx: &SecurityContext, org: &Organization, username: &str) -> Result<Principal, diesel::result::Error> {
+    pub fn new_principal_with(&self, ctx: &SecurityContext, org: &Organization, username: &str) -> Result<Principal, RbacError> {
         self.save_principal(ctx, &Principal::new("", org.id.as_str(), username, None))
     }
 
     /// Creates principal
-    pub fn save_principal(&self, ctx: &SecurityContext, principal: &Principal) -> Result<Principal, diesel::result::Error> {
+    pub fn save_principal(&self, ctx: &SecurityContext, principal: &Principal) -> Result<Principal, RbacError> {
         match self.principal_repository.get(principal.id.as_str()) {
             Some(mut db_obj) => {
                 db_obj.description = principal.description.clone();
                 db_obj.updated_at = Utc::now().naive_utc();
                 db_obj.updated_by = Some(ctx.principal_id.clone());
                 if let Some(err) = self.principal_repository.update(&db_obj) {
-                    return Err(err);
+                    return Err(RbacError::Persistence(err.to_string()));
                 }
                 info!("Updating principal {:?}", db_obj);
                 self.audit(ctx, format!("Updating principal {:?}", db_obj), "UPDATE");
@@ -188,7 +190,7 @@ impl<'a> PersistenceManager<'a> {
                 db_obj.updated_at = Utc::now().naive_utc();
                 db_obj.updated_by = Some(ctx.principal_id.clone());
                 if let Some(err) = self.principal_repository.create(&db_obj) {
-                    return Err(err);
+                    return Err(RbacError::Persistence(err.to_string()));
                 }
                 self.audit(ctx, format!("Creating new principal {:?}", db_obj), "CREATE");
                 info!("Creating principal {:?}", db_obj);
@@ -216,7 +218,7 @@ impl<'a> PersistenceManager<'a> {
                     self.add_roles(org_roles, &vec![parent_id.clone()], principal);
                 }
             } else {
-                warn!("Failed to add role with id {} for {}-{} because it's not mapped to org, all orgs: {:?} while populating principal", role_id, principal.username, principal.id, org_roles);
+                warn!("Failed to add role with id {} for {}-{} because it's not mapped to org while populating principal", role_id, principal.username, principal.id);
             }
         }
     }
@@ -306,17 +308,17 @@ impl<'a> PersistenceManager<'a> {
 
     ////////////////////////////////// Group CRUD OPERATIONS //////////////////////////////
     /// Creates group with parent
-    pub fn new_group_with_parent(&self, ctx: &SecurityContext, org: &Organization, parent: &Group, name: &str) -> Result<Group, diesel::result::Error> {
+    pub fn new_group_with_parent(&self, ctx: &SecurityContext, org: &Organization, parent: &Group, name: &str) -> Result<Group, RbacError> {
         self.save_group(ctx, &Group::new("".into(), org.id.as_str(), name, None, Some(parent.id.clone())))
     }
 
     /// Creates group
-    pub fn new_group_with(&self, ctx: &SecurityContext, org: &Organization, name: &str) -> Result<Group, diesel::result::Error> {
+    pub fn new_group_with(&self, ctx: &SecurityContext, org: &Organization, name: &str) -> Result<Group, RbacError> {
         self.save_group(ctx, &Group::new("".into(), org.id.as_str(), name, None, None))
     }
 
     /// Creates group
-    pub fn save_group(&self, ctx: &SecurityContext, group: &Group) -> Result<Group, diesel::result::Error> {
+    pub fn save_group(&self, ctx: &SecurityContext, group: &Group) -> Result<Group, RbacError> {
         match self.group_repository.get(group.id.as_str()) {
             Some(mut db_obj) => {
                 db_obj.parent_id = group.parent_id.clone();
@@ -324,7 +326,7 @@ impl<'a> PersistenceManager<'a> {
                 db_obj.updated_at = Utc::now().naive_utc();
                 db_obj.updated_by = Some(ctx.principal_id.clone());
                 if let Some(err) = self.group_repository.update(&db_obj) {
-                    return Err(err);
+                    return Err(RbacError::Persistence(err.to_string()));
                 }
                 self.audit(ctx, format!("Updating group {:?}", db_obj), "UPDATE");
                 info!("Updating group {:?}", db_obj);
@@ -338,7 +340,7 @@ impl<'a> PersistenceManager<'a> {
                 db_obj.updated_at = Utc::now().naive_utc();
                 db_obj.updated_by = Some(ctx.principal_id.clone());
                 if let Some(err) = self.group_repository.create(&db_obj) {
-                    return Err(err);
+                    return Err(RbacError::Persistence(err.to_string()));
                 }
                 self.audit(ctx, format!("Creating new group {:?}", db_obj), "CREATE");
                 info!("Creating group {:?}", db_obj);
@@ -399,17 +401,17 @@ impl<'a> PersistenceManager<'a> {
 
     ////////////////////////////////// Role CRUD OPERATIONS //////////////////////////////
     /// Creates role with parent
-    pub fn new_role_with_parent(&self, ctx: &SecurityContext, realm: &SecurityRealm, org: &Organization, parent: &Role, name: &str) -> Result<Role, diesel::result::Error> {
+    pub fn new_role_with_parent(&self, ctx: &SecurityContext, realm: &SecurityRealm, org: &Organization, parent: &Role, name: &str) -> Result<Role, RbacError> {
         self.save_role(ctx, &Role::new("".into(), realm.id.as_str(), org.id.as_str(), name, None, Some(parent.id.clone())))
     }
 
     /// Creates role
-    pub fn new_role_with(&self, ctx: &SecurityContext, realm: &SecurityRealm, org: &Organization, name: &str) -> Result<Role, diesel::result::Error> {
+    pub fn new_role_with(&self, ctx: &SecurityContext, realm: &SecurityRealm, org: &Organization, name: &str) -> Result<Role, RbacError> {
         self.save_role(ctx, &Role::new("".into(), realm.id.as_str(), org.id.as_str(), name, None, None))
     }
 
     /// Creates role
-    pub fn save_role(&self, ctx: &SecurityContext, role: &Role) -> Result<Role, diesel::result::Error> {
+    pub fn save_role(&self, ctx: &SecurityContext, role: &Role) -> Result<Role, RbacError> {
         match self.role_repository.get(role.id.as_str()) {
             Some(mut db_obj) => {
                 db_obj.parent_id = role.parent_id.clone();
@@ -418,7 +420,7 @@ impl<'a> PersistenceManager<'a> {
                 db_obj.updated_at = Utc::now().naive_utc();
                 db_obj.updated_by = Some(ctx.principal_id.clone());
                 if let Some(err) = self.role_repository.update(&db_obj) {
-                    return Err(err);
+                    return Err(RbacError::Persistence(err.to_string()));
                 }
                 self.audit(ctx, format!("Updating role {:?}", db_obj), "UPDATE");
                 info!("Updating role {:?}", db_obj);
@@ -432,7 +434,7 @@ impl<'a> PersistenceManager<'a> {
                 db_obj.updated_at = Utc::now().naive_utc();
                 db_obj.updated_by = Some(ctx.principal_id.clone());
                 if let Some(err) = self.role_repository.create(&db_obj) {
-                    return Err(err);
+                    return Err(RbacError::Persistence(err.to_string()));
                 }
                 self.audit(ctx, format!("Creating new role {:?}", db_obj), "CREATE");
                 info!("Creating role {:?}", db_obj);
@@ -525,12 +527,12 @@ impl<'a> PersistenceManager<'a> {
 
     ////////////////////////////////// RESOURCE CRUD OPERATIONS //////////////////////////////
     /// Creates resource
-    pub fn new_resource_with(&self, ctx: &SecurityContext, realm: &SecurityRealm, resource_name: &str) -> Result<Resource, diesel::result::Error> {
+    pub fn new_resource_with(&self, ctx: &SecurityContext, realm: &SecurityRealm, resource_name: &str) -> Result<Resource, RbacError> {
         self.save_resource(ctx, &Resource::new("", realm.id.as_str(), resource_name, None, Some("(CREATE|READ|UPDATE|DELETE)".to_string())))
     }
 
     /// Creates resource
-    pub fn save_resource(&self, ctx: &SecurityContext, resource: &Resource) -> Result<Resource, diesel::result::Error> {
+    pub fn save_resource(&self, ctx: &SecurityContext, resource: &Resource) -> Result<Resource, RbacError> {
         match self.resource_repository.get(resource.id.as_str()) {
             Some(mut db_obj) => {
                 db_obj.allowable_actions = resource.allowable_actions .clone();
@@ -538,7 +540,7 @@ impl<'a> PersistenceManager<'a> {
                 db_obj.updated_at = Utc::now().naive_utc();
                 db_obj.updated_by = Some(ctx.principal_id.clone());
                 if let Some(err) = self.resource_repository.update(&db_obj) {
-                    return Err(err);
+                    return Err(RbacError::Persistence(err.to_string()));
                 }
                 self.audit(ctx, format!("Updating resource {:?}", db_obj), "UPDATE");
                 info!("Updating resource {:?}", db_obj);
@@ -553,7 +555,7 @@ impl<'a> PersistenceManager<'a> {
                 db_obj.updated_at = Utc::now().naive_utc();
                 db_obj.updated_by = Some(ctx.principal_id.clone());
                 if let Some(err) = self.resource_repository.create(&db_obj) {
-                    return Err(err);
+                    return Err(RbacError::Persistence(err.to_string()));
                 }
                 self.audit(ctx, format!("Adding resource {:?}", db_obj), "CREATE");
                 info!("Creating resource {:?}", db_obj);
@@ -653,7 +655,23 @@ impl<'a> PersistenceManager<'a> {
 
     ////////////////////////////////// RESOURCE INSTANCE CRUD OPERATIONS //////////////////////////////
     /// Creates resource_instance
-    pub fn save_resource_instance(&self, ctx: &SecurityContext, instance: &ResourceInstance) -> Result<ResourceInstance, diesel::result::Error> {
+    pub fn new_resource_instance_with(&self, ctx: &SecurityContext, resource: &Resource, policy: &LicensePolicy, scope: &str, ref_id: &str, status: Status) -> Result<ResourceInstance, RbacError> {
+        self.save_resource_instance(ctx, &ResourceInstance::new("", resource.id.as_str(), policy.id.as_str(), scope, ref_id, status.to_string().as_str(), None))
+    }
+
+    /// Creates resource_instance
+    pub fn save_resource_instance(&self, ctx: &SecurityContext, instance: &ResourceInstance) -> Result<ResourceInstance, RbacError> {
+        if let Some(quota) = self.resource_quota_repository.get_by_resource(instance.resource_id.as_str(), instance.scope.as_str()).first() {
+            let count = self.resource_instance_repository.count_by_resource(instance.resource_id.as_str(), instance.scope.as_str());
+            if count >= quota.max_value as i64 {
+                warn!("Reached limit for {:?}  -- {:?}", instance, quota);
+                return Err(RbacError::QuotaExceeded(format!("Reached limit for {:?} -- {:?}", instance, quota)));
+            }
+        } else {
+            warn!("Reached limit for {:?}", instance);
+            return Err(RbacError::QuotaExceeded(format!("Reached limit for {:?} -- quota not found", instance)));
+        }
+        //
         match self.resource_instance_repository.get(instance.id.as_str()) {
             Some(mut db_obj) => {
                 db_obj.status = instance.status.clone();
@@ -661,7 +679,8 @@ impl<'a> PersistenceManager<'a> {
                 db_obj.updated_at = Utc::now().naive_utc();
                 db_obj.updated_by = Some(ctx.principal_id.clone());
                 if let Some(err) = self.resource_instance_repository.update(&db_obj) {
-                    return Err(err);
+                    warn!("Failed to update resource instance {}", err.to_string());
+                    return Err(RbacError::Persistence(err.to_string()));
                 }
                 self.audit(ctx, format!("Updating resource instance {:?}", db_obj), "UPDATE");
                 info!("Updating resource_instance {:?}", db_obj);
@@ -675,7 +694,8 @@ impl<'a> PersistenceManager<'a> {
                 db_obj.updated_at = Utc::now().naive_utc();
                 db_obj.updated_by = Some(ctx.principal_id.clone());
                 if let Some(err) = self.resource_instance_repository.create(&db_obj) {
-                    return Err(err);
+                    warn!("Failed to create resource instance {}", err.to_string());
+                    return Err(RbacError::Persistence(err.to_string()));
                 }
                 self.audit(ctx, format!("Adding new resource instance {:?}", db_obj), "CREATE");
                 info!("Creating resource_instance {:?}", db_obj);
@@ -692,54 +712,59 @@ impl<'a> PersistenceManager<'a> {
         }
     }
 
-    ////////////////////////////////// RESOURCE LIMIT CRUD OPERATIONS //////////////////////////////
-    /// Creates resource_limit
-    pub fn save_resource_limit(&self, ctx: &SecurityContext, limit: &ResourceLimit) -> Result<ResourceLimit, diesel::result::Error> {
-        match self.resource_limit_repository.get(limit.id.as_str()) {
+    ////////////////////////////////// RESOURCE quota CRUD OPERATIONS //////////////////////////////
+    /// Creates resource_quota
+    pub fn new_resource_quota_with(&self, ctx: &SecurityContext, resource: &Resource, policy: &LicensePolicy, scope: &str, max_value: i32) -> Result<ResourceQuota, RbacError> {
+        self.save_resource_quota(ctx, &ResourceQuota::new("", resource.id.as_str(), policy.id.as_str(), scope, max_value, Utc::now().naive_utc(), NaiveDate::from_ymd(2100, 1, 1).and_hms(0, 0, 0)))
+    }
+
+    /// Creates resource_quota
+    pub fn save_resource_quota(&self, ctx: &SecurityContext, quota: &ResourceQuota) -> Result<ResourceQuota, RbacError> {
+        match self.resource_quota_repository.get(quota.id.as_str()) {
             Some(mut db_obj) => {
-                db_obj.max_value = limit.max_value.clone();
+                db_obj.max_value = quota.max_value.clone();
                 db_obj.updated_at = Utc::now().naive_utc();
                 db_obj.updated_by = Some(ctx.principal_id.clone());
-                if let Some(err) = self.resource_limit_repository.update(&db_obj) {
-                    return Err(err);
+                if let Some(err) = self.resource_quota_repository.update(&db_obj) {
+                    return Err(RbacError::Persistence(err.to_string()));
                 }
-                self.audit(ctx, format!("Updating new resource limit {:?}", db_obj), "UPDATE");
-                info!("Updating resource_limit {:?}", db_obj);
-                Ok(ResourceLimit::from(&db_obj))
+                self.audit(ctx, format!("Updating new resource quota {:?}", db_obj), "UPDATE");
+                info!("Updating resource_quota {:?}", db_obj);
+                Ok(ResourceQuota::from(&db_obj))
             }
             None => {
-                let mut db_obj = limit.to();
+                let mut db_obj = quota.to();
                 db_obj.id = Uuid::new_v4().to_hyphenated().to_string();
                 db_obj.created_at = Utc::now().naive_utc();
                 db_obj.created_by = Some(ctx.principal_id.clone());
                 db_obj.updated_at = Utc::now().naive_utc();
                 db_obj.updated_by = Some(ctx.principal_id.clone());
-                if let Some(err) = self.resource_limit_repository.create(&db_obj) {
-                    return Err(err);
+                if let Some(err) = self.resource_quota_repository.create(&db_obj) {
+                    return Err(RbacError::Persistence(err.to_string()));
                 }
-                self.audit(ctx, format!("Adding new resource limit {:?}", db_obj), "CREATE");
-                info!("Creating resource_limit {:?}", db_obj);
-                Ok(ResourceLimit::from(&db_obj))
+                self.audit(ctx, format!("Adding new resource quota {:?}", db_obj), "CREATE");
+                info!("Creating resource_quota {:?}", db_obj);
+                Ok(ResourceQuota::from(&db_obj))
             }
         }
     }
 
-    /// Retrieves resource_limit by id from the database
-    pub fn get_resource_limit(&self, _ctx: &SecurityContext, id: &str) -> Option<ResourceLimit> {
-        match self.resource_limit_repository.get(id) {
-            Some(limit) => Some(ResourceLimit::from(&limit)),
+    /// Retrieves resource_quota by id from the database
+    pub fn get_resource_quota(&self, _ctx: &SecurityContext, id: &str) -> Option<ResourceQuota> {
+        match self.resource_quota_repository.get(id) {
+            Some(quota) => Some(ResourceQuota::from(&quota)),
             None => None,
         }
     }
 
-    ////////////////////////////////// CLAIM LIMIT CRUD OPERATIONS //////////////////////////////
+    ////////////////////////////////// CLAIM quota CRUD OPERATIONS //////////////////////////////
     /// Creates claim
-    pub fn new_claim_with(&self, ctx: &SecurityContext, realm: &SecurityRealm, resource: &Resource, action: &str) -> Result<Claim, diesel::result::Error> {
+    pub fn new_claim_with(&self, ctx: &SecurityContext, realm: &SecurityRealm, resource: &Resource, action: &str) -> Result<Claim, RbacError> {
         self.save_claim(ctx, &Claim::new("", realm.id.as_str(), resource.id.as_str(), action, Constants::Allow.to_string().as_str(), None))
     }
 
     /// Creates claim
-    pub fn save_claim(&self, ctx: &SecurityContext, claim: &Claim) -> Result<Claim, diesel::result::Error> {
+    pub fn save_claim(&self, ctx: &SecurityContext, claim: &Claim) -> Result<Claim, RbacError> {
         match self.claim_repository.get(claim.id.as_str()) {
             Some(mut db_obj) => {
                 db_obj.action = claim.action.clone();
@@ -750,7 +775,7 @@ impl<'a> PersistenceManager<'a> {
                 db_obj.updated_at = Utc::now().naive_utc();
                 db_obj.updated_by = Some(ctx.principal_id.clone());
                 if let Some(err) = self.claim_repository.update(&db_obj) {
-                    return Err(err);
+                    return Err(RbacError::Persistence(err.to_string()));
                 }
                 self.audit(ctx, format!("Updating claim {:?}", db_obj), "CREATE");
                 info!("Updating claim {:?}", db_obj);
@@ -764,7 +789,7 @@ impl<'a> PersistenceManager<'a> {
                 db_obj.updated_at = Utc::now().naive_utc();
                 db_obj.updated_by = Some(ctx.principal_id.clone());
                 if let Some(err) = self.claim_repository.create(&db_obj) {
-                    return Err(err);
+                    return Err(RbacError::Persistence(err.to_string()));
                 }
                 self.audit(ctx, format!("Adding new claim {:?}", db_obj), "CREATE");
                 info!("Creating claim {:?}", db_obj);
@@ -882,19 +907,19 @@ impl<'a> PersistenceManager<'a> {
 
     ////////////////////////////////// LICENSE POLICY CRUD OPERATIONS //////////////////////////////
     /// Adds license-policy
-    pub fn new_license_policy(&self, ctx: &SecurityContext, org: &Organization) -> Result<LicensePolicy, diesel::result::Error> {
+    pub fn new_license_policy(&self, ctx: &SecurityContext, org: &Organization) -> Result<LicensePolicy, RbacError> {
         self.save_license_policy(&ctx, &LicensePolicy::new("", org.id.as_str(), "default-policy", None, Utc::now().naive_utc(), NaiveDate::from_ymd(2100, 1, 1).and_hms(0, 0, 0)))
     }
 
     /// Adds license-policy
-    pub fn save_license_policy(&self, ctx: &SecurityContext, policy: &LicensePolicy) -> Result<LicensePolicy, diesel::result::Error> {
+    pub fn save_license_policy(&self, ctx: &SecurityContext, policy: &LicensePolicy) -> Result<LicensePolicy, RbacError> {
         match self.license_policy_repository.get(policy.id.as_str()) {
             Some(mut db_obj) => {
                 db_obj.description = policy.description.clone();
                 db_obj.updated_at = Utc::now().naive_utc();
                 db_obj.updated_by = Some(ctx.principal_id.clone());
                 if let Some(err) = self.license_policy_repository.update(&db_obj) {
-                    return Err(err);
+                    return Err(RbacError::Persistence(err.to_string()));
                 }
                 self.audit(ctx, format!("Updating license-policy {:?}", policy), "UPDATE");
                 info!("Updating license policy {:?}", db_obj);
@@ -911,7 +936,7 @@ impl<'a> PersistenceManager<'a> {
                 db_obj.updated_at = Utc::now().naive_utc();
                 db_obj.updated_by = Some(ctx.principal_id.clone());
                 if let Some(err) = self.license_policy_repository.create(&db_obj) {
-                    return Err(err);
+                    return Err(RbacError::Persistence(err.to_string()));
                 }
                 self.audit(ctx, format!("Adding new license-policy {:?}", policy), "CREATE");
                 info!("Creating license policy {:?}", db_obj);
@@ -938,7 +963,7 @@ impl<'a> PersistenceManager<'a> {
         self.claim_repository.clear();
         self.role_roleable_repository.clear();
         self.role_repository.clear();
-        self.resource_limit_repository.clear();
+        self.resource_quota_repository.clear();
         self.resource_instance_repository.clear();
         self.resource_repository.clear();
         self.group_principal_repository.clear();
@@ -1102,14 +1127,20 @@ mod tests {
         let loaded = mgr.get_resource(&ctx, resource.id.as_str()).unwrap();
         assert_eq!(format!("{:?}", resource), format!("{:?}", loaded));
 
+        let org = mgr.save_org(&ctx, &Organization::new("", None, "myorg", "url", None)).unwrap();
 
-        let instance = mgr.save_resource_instance(&ctx, &ResourceInstance::new("", resource.id.as_str(), "22", "report", "refid", "INFLIGHT", Some("blah".to_string()))).unwrap();
+        let policy = mgr.save_license_policy(&ctx, &LicensePolicy::new("", org.id.as_str(), "default-policy", Some("desc".to_string()), Utc::now().naive_utc(), NaiveDate::from_ymd(2100, 1, 1).and_hms(0, 0, 0))).unwrap();
+
+        let _ = mgr.save_resource_quota(&ctx, &ResourceQuota::new("", resource.id.as_str(), policy.id.as_str(), "", 2, Utc::now().naive_utc(), NaiveDate::from_ymd(2100, 1, 1).and_hms(0, 0, 0))).unwrap();
+
+        let instance = mgr.save_resource_instance(&ctx, &ResourceInstance::new("", resource.id.as_str(), "22", "", "refid", "INFLIGHT", Some("blah".to_string()))).unwrap();
+
         let loaded = mgr.get_resource_instance(&ctx, instance.id.as_str()).unwrap();
         assert_eq!(format!("{:?}", instance), format!("{:?}", loaded));
 
-        let limit = mgr.save_resource_limit(&ctx, &ResourceLimit::new("", resource.id.as_str(), "22", "report", 22, Utc::now().naive_utc(), NaiveDate::from_ymd(2100, 1, 1).and_hms(0, 0, 0))).unwrap();
-        let loaded = mgr.get_resource_limit(&ctx, limit.id.as_str()).unwrap();
-        assert_eq!(format!("{:?}", limit), format!("{:?}", loaded));
+        let quota = mgr.save_resource_quota(&ctx, &ResourceQuota::new("", resource.id.as_str(), "22", "", 22, Utc::now().naive_utc(), NaiveDate::from_ymd(2100, 1, 1).and_hms(0, 0, 0))).unwrap();
+        let loaded = mgr.get_resource_quota(&ctx, quota.id.as_str()).unwrap();
+        assert_eq!(format!("{:?}", quota), format!("{:?}", loaded));
     }
 
     #[test]
@@ -1700,5 +1731,141 @@ mod tests {
         let mut req = PermissionRequest::new(realm.id.as_str(), ali.id.as_str(), ActionType::SUBMIT, "App", "com.xyz.app");
         req.context.add("appSize", ValueWrapper::Int(5000));
         assert!(security_mgr.check(&req).is_err());
+    }
+
+    #[test]
+    fn test_project() {
+        init();
+        // Initialize context and repository
+        let ctx = SecurityContext::new("0".into(), "0".into());
+        let factory = RepositoryFactory::new();
+        let mgr = factory.new_persistence_manager();
+        mgr.clear();
+        // Bootstrapping dependent data
+
+        // Creating security realm
+        let realm = mgr.new_realm_with(&ctx, "JobGrid").unwrap();
+
+        // Creating organization
+        let abc_corp = mgr.new_org_with(&ctx, "ABC").unwrap();
+        let xyz_corp = mgr.new_org_with(&ctx, "XYZ").unwrap();
+
+        // Create license policies
+        let abc_policy = mgr.new_license_policy(&ctx, &abc_corp).unwrap();
+        let xyz_policy = mgr.new_license_policy(&ctx, &xyz_corp).unwrap();
+
+        // Creating Users
+        let abc_dave = mgr.new_principal_with(&ctx, &abc_corp, "dave").unwrap();
+        let abc_ali = mgr.new_principal_with(&ctx, &abc_corp, "ali").unwrap();
+
+        let xyz_dan = mgr.new_principal_with(&ctx, &xyz_corp, "dan").unwrap();
+        let xyz_ann = mgr.new_principal_with(&ctx, &xyz_corp, "ann").unwrap();
+
+        // Creating Roles
+        let abc_developer = mgr.new_role_with(&ctx, &realm, &abc_corp, "Developer").unwrap();
+        let abc_admin = mgr.new_role_with_parent(&ctx, &realm, &abc_corp, &abc_developer, "Admin").unwrap();
+
+        let xyz_developer = mgr.new_role_with(&ctx, &realm, &xyz_corp, "Developer").unwrap();
+        let xyz_admin = mgr.new_role_with_parent(&ctx, &realm, &xyz_corp, &xyz_developer, "Admin").unwrap();
+
+        // Creating Resources
+        let project = mgr.new_resource_with(&ctx, &realm, "Project").unwrap();
+        let job = mgr.new_resource_with(&ctx, &realm, "Job").unwrap();
+
+        // Creating claims for resources
+        let project_create_delete = mgr.new_claim_with(&ctx, &realm, &project, "(CREATE|DELETE)").unwrap();
+        let project_view = mgr.new_claim_with(&ctx, &realm, &project, "VIEW").unwrap();
+        let job_view_submit = mgr.new_claim_with(&ctx, &realm, &job, "(VIEW|SUBMIT)").unwrap();
+
+        // Mapping Principals and Claims to Roles
+        mgr.map_principal_to_role(&ctx, &abc_dave, &abc_developer);
+        mgr.map_principal_to_role(&ctx, &abc_ali, &abc_admin);
+
+        mgr.map_principal_to_role(&ctx, &xyz_dan, &xyz_developer);
+        mgr.map_principal_to_role(&ctx, &xyz_ann, &xyz_admin);
+
+        // Map claims to policies as follows:
+        mgr.map_license_policy_to_claim(&ctx, &abc_policy, &project_create_delete, "com.abc.app", "");
+        mgr.map_license_policy_to_claim(&ctx, &abc_policy, &project_view, "com.abc.app", "");
+        mgr.map_license_policy_to_claim(&ctx, &abc_policy, &job_view_submit, "com.abc.app", "appSize < 1000");
+
+        mgr.map_license_policy_to_claim(&ctx, &xyz_policy, &project_create_delete, "com.xyz.app", "");
+        mgr.map_license_policy_to_claim(&ctx, &xyz_policy, &project_view, "com.xyz.app", "");
+        mgr.map_license_policy_to_claim(&ctx, &xyz_policy, &job_view_submit, "com.xyz.app", "appSize < 1000");
+
+        // Map claims to roles as follows:
+        mgr.map_role_to_claim(&ctx, &abc_admin, &project_create_delete, "com.abc.app", "");
+        mgr.map_role_to_claim(&ctx, &abc_developer, &project_view, "com.abc.app", "");
+        mgr.map_role_to_claim(&ctx, &abc_developer, &job_view_submit, "com.abc.app", "appSize < 1000");
+
+        mgr.map_role_to_claim(&ctx, &xyz_admin, &project_create_delete, "com.xyz.app", "");
+        mgr.map_role_to_claim(&ctx, &xyz_developer, &project_view, "com.xyz.app", "");
+        mgr.map_role_to_claim(&ctx, &xyz_developer, &job_view_submit, "com.xyz.app", "appSize < 1000");
+
+        let security_mgr = SecurityManager::new(mgr);
+
+        // Ali for ABC should create project
+        let mut req = PermissionRequest::new(realm.id.as_str(), abc_ali.id.as_str(), ActionType::CREATE, "Project", "com.abc.app");
+        req.context.add("appSize", ValueWrapper::Int(500));
+        assert!(security_mgr.check(&req).is_ok());
+
+        // Dave for ABC should be able to submit job
+        let mut req = PermissionRequest::new(realm.id.as_str(), abc_dave.id.as_str(), ActionType::SUBMIT, "Job", "com.abc.app");
+        req.context.add("appSize", ValueWrapper::Int(500));
+        assert!(security_mgr.check(&req).is_ok());
+
+    }
+
+    #[test]
+    fn test_quota_limits() {
+        init();
+        // Initialize context and repository
+        let ctx = SecurityContext::new("0".into(), "0".into());
+        let factory = RepositoryFactory::new();
+        let mgr = factory.new_persistence_manager();
+        mgr.clear();
+        // Bootstrapping dependent data
+
+        // Creating security realm
+        let realm = mgr.new_realm_with(&ctx, "JobGrid").unwrap();
+
+        // Creating organization
+        let abc_corp = mgr.new_org_with(&ctx, "ABC").unwrap();
+        let xyz_corp = mgr.new_org_with(&ctx, "XYZ").unwrap();
+
+        // Create license policies
+        let abc_policy = mgr.new_license_policy(&ctx, &abc_corp).unwrap();
+        let xyz_policy = mgr.new_license_policy(&ctx, &xyz_corp).unwrap();
+
+        // Creating Resources
+        let project = mgr.new_resource_with(&ctx, &realm, "Project").unwrap();
+        let job = mgr.new_resource_with(&ctx, &realm, "Job").unwrap();
+
+        // Set Resource Quota
+        assert!(mgr.new_resource_quota_with(&ctx, &project, &abc_policy, "ABC Project", 1).is_ok());
+        assert!(mgr.new_resource_quota_with(&ctx, &job, &abc_policy, "ABC Jobs", 2).is_ok());
+
+        assert!(mgr.new_resource_quota_with(&ctx, &project, &xyz_policy, "XYZ Project", 2).is_ok());
+        assert!(mgr.new_resource_quota_with(&ctx, &job, &xyz_policy, "XYZ Jobs", 3).is_ok());
+
+        // abc can have at most 1 project
+        assert!(mgr.new_resource_instance_with(&ctx, &project, &abc_policy, "ABC Project", "1", Status::COMPLETED).is_ok());
+        assert!(mgr.new_resource_instance_with(&ctx, &project, &abc_policy, "ABC Project", "2", Status::COMPLETED).is_err());
+
+        // abc can have at most 3 jobs
+        assert!(mgr.new_resource_instance_with(&ctx, &job, &abc_policy, "ABC Jobs", "1", Status::COMPLETED).is_ok());
+        assert!(mgr.new_resource_instance_with(&ctx, &job, &abc_policy, "ABC Jobs", "2", Status::COMPLETED).is_ok());
+        assert!(mgr.new_resource_instance_with(&ctx, &job, &abc_policy, "ABC Jobs", "3", Status::COMPLETED).is_err());
+
+        // xyz can have at most 2 project
+        assert!(mgr.new_resource_instance_with(&ctx, &project, &xyz_policy, "XYZ Project", "1", Status::COMPLETED).is_ok());
+        assert!(mgr.new_resource_instance_with(&ctx, &project, &xyz_policy, "XYZ Project", "2", Status::COMPLETED).is_ok());
+        assert!(mgr.new_resource_instance_with(&ctx, &project, &xyz_policy, "XYZ Project", "3", Status::COMPLETED).is_err());
+
+        // xyz can have at most 4 jobs
+        assert!(mgr.new_resource_instance_with(&ctx, &job, &xyz_policy, "XYZ Jobs", "1", Status::COMPLETED).is_ok());
+        assert!(mgr.new_resource_instance_with(&ctx, &job, &xyz_policy, "XYZ Jobs", "2", Status::COMPLETED).is_ok());
+        assert!(mgr.new_resource_instance_with(&ctx, &job, &xyz_policy, "XYZ Jobs", "3", Status::COMPLETED).is_ok());
+        assert!(mgr.new_resource_instance_with(&ctx, &job, &xyz_policy, "XYZ Jobs", "4", Status::COMPLETED).is_err());
     }
 }

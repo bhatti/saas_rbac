@@ -122,8 +122,8 @@ table! {
     rbac_resource_instances (id) {
         id -> Text,
         resource_id -> Text,
-        resourceable_id -> Text,
-        resourceable_type -> Text,
+        license_policy_id -> Text,
+        scope -> Text,
         ref_id -> Text,
         status -> Text,
         description -> Nullable<Text>,
@@ -135,11 +135,11 @@ table! {
 }
 
 table! {
-    rbac_resource_limits (id) {
+    rbac_resource_quotas (id) {
         id -> Text,
         resource_id -> Text,
-        limitable_id -> Text,
-        limitable_type -> Text,
+        license_policy_id -> Text,
+        scope -> Text,
         max_value -> Integer,
         effective_at -> Timestamp,
         expired_at -> Timestamp,
@@ -202,8 +202,10 @@ joinable!(rbac_group_principals -> rbac_principals (principal_id));
 joinable!(rbac_groups -> rbac_organizations (organization_id));
 joinable!(rbac_license_policies -> rbac_organizations (organization_id));
 joinable!(rbac_principals -> rbac_organizations (organization_id));
+joinable!(rbac_resource_instances -> rbac_license_policies (license_policy_id));
 joinable!(rbac_resource_instances -> rbac_resources (resource_id));
-joinable!(rbac_resource_limits -> rbac_resources (resource_id));
+joinable!(rbac_resource_quotas -> rbac_license_policies (license_policy_id));
+joinable!(rbac_resource_quotas -> rbac_resources (resource_id));
 joinable!(rbac_resources -> rbac_realms (realm_id));
 joinable!(rbac_role_roleables -> rbac_roles (role_id));
 joinable!(rbac_roles -> rbac_organizations (organization_id));
@@ -220,7 +222,7 @@ allow_tables_to_appear_in_same_query!(
     rbac_principals,
     rbac_realms,
     rbac_resource_instances,
-    rbac_resource_limits,
+    rbac_resource_quotas,
     rbac_resources,
     rbac_role_roleables,
     rbac_roles,

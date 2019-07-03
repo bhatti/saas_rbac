@@ -200,8 +200,8 @@ impl PResource {
 pub struct PResourceInstance {
     pub id: String,
     pub resource_id: String,
-    pub resourceable_id: String,
-    pub resourceable_type: String,
+    pub license_policy_id : String,
+    pub scope: String,
     pub ref_id: String,
     pub status: String,
     pub description: Option<String>,
@@ -212,12 +212,12 @@ pub struct PResourceInstance {
 }
 
 impl PResourceInstance {
-    pub fn new(id: &str, resource_id: &str, resourceable_id: &str, resourceable_type: &str, ref_id: &str, status: &str, description: Option<String>) -> PResourceInstance {
+    pub fn new(id: &str, resource_id: &str, license_policy_id: &str, scope: &str, ref_id: &str, status: &str, description: Option<String>) -> PResourceInstance {
         PResourceInstance {
             id: id.to_string(),
             resource_id: resource_id.to_string(),
-            resourceable_id: resourceable_id.to_string(),
-            resourceable_type: resourceable_type.to_string(),
+            license_policy_id: license_policy_id.to_string(),
+            scope: scope.to_string(),
             ref_id: ref_id.to_string(),
             status: status.to_string(),
             description: description,
@@ -229,15 +229,16 @@ impl PResourceInstance {
     }
 }
 
-/// PResourceLimit represents max limit for number of instances of target object
+/// PResourceQuota represents max quota for number of instances of target object
 #[derive(Debug, Clone, PartialEq, Queryable, Insertable, AsChangeset, Associations, Serialize, Deserialize)]
-#[table_name = "rbac_resource_limits"]
+#[table_name = "rbac_resource_quotas"]
 #[belongs_to(PResource, foreign_key="resource_id")]
-pub struct PResourceLimit {
+#[belongs_to(PLicensePolicy, foreign_key="license_policy_id")]
+pub struct PResourceQuota {
     pub id: String,
     pub resource_id: String,
-    pub limitable_id: String,
-    pub limitable_type: String,
+    pub license_policy_id: String,
+    pub scope: String,
     pub max_value: i32,
     pub effective_at: NaiveDateTime,
     pub expired_at: NaiveDateTime,
@@ -247,13 +248,13 @@ pub struct PResourceLimit {
     pub updated_at: NaiveDateTime,
 }
 
-impl PResourceLimit {
-    pub fn new(id: &str, resource_id: &str, limitable_id: &str, limitable_type: &str, max_value: i32, effective_at: NaiveDateTime, expired_at: NaiveDateTime) -> PResourceLimit {
-        PResourceLimit {
+impl PResourceQuota {
+    pub fn new(id: &str, resource_id: &str, license_policy_id: &str, scope: &str, max_value: i32, effective_at: NaiveDateTime, expired_at: NaiveDateTime) -> PResourceQuota {
+        PResourceQuota {
             id: id.to_string(),
             resource_id: resource_id.to_string(),
-            limitable_id: limitable_id.to_string(),
-            limitable_type: limitable_type.to_string(),
+            license_policy_id: license_policy_id.to_string(),
+            scope: scope.to_string(),
             max_value: max_value,
             effective_at: effective_at,
             expired_at: expired_at,

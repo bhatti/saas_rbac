@@ -1,12 +1,12 @@
 //#![crate_name = "doc"]
     
-use evalexpr::EvalexprError;
 use plexrbac::security::request::PermissionRequest;
 use plexrbac::security::response::PermissionResponse;
 use plexrbac::persistence::manager::PersistenceManager;
 use plexrbac::utils::text;
 use plexrbac::utils::evaluator::*;
-use log::{error, warn};
+use plexrbac::common::RbacError;
+use log::{info, warn};
 
 ////////////////////////////////////////////////////////////////////////////////
 /// SecurityManager checks access
@@ -22,7 +22,7 @@ impl <'a> SecurityManager<'a> {
         }
     }
 
-    pub fn check(&self, request: &PermissionRequest) -> Result<PermissionResponse, evalexpr::EvalexprError> {
+    pub fn check(&self, request: &PermissionRequest) -> Result<PermissionResponse, RbacError> {
         if let Some(principal) = self.persistence_manager.get_principal(&request.context, request.context.realm_id.as_str(), request.context.principal_id.as_str()) {
             let claim_resources = self.persistence_manager.get_resources_by_claims(&request.context, request.context.realm_id.as_str(), &principal, request.resource_name.clone(), request.resource_scope.clone());
             let mut claim_resources_str  = String::from("");
@@ -33,13 +33,13 @@ impl <'a> SecurityManager<'a> {
                         match evaluate(cr.constraints.as_str(), &request.context.properties) {
                             Ok(ok) => {
                                 if ok {
-                                    warn!("GRANTED {:?} -- {:?}", request, cr.claim);
+                                    info!("GRANTED PERMISSION {:?} -- {:?}", request, cr.claim);
                                     return Ok(PermissionResponse::from(cr.claim.effect));
                                 } else {
                                     //println!(">>>>>>>>> EVALUATED FALSE for {} -- {:?}\n{:?}", cr.constraints.as_str(), cr, request);
                                 }
                             },
-                            Err(err) => return Err(err),
+                            Err(err) => return Err(RbacError::Evaluation(err.to_string())),
                         }
                     } else {
                         return Ok(PermissionResponse::from(cr.claim.effect));
@@ -47,10 +47,10 @@ impl <'a> SecurityManager<'a> {
                 }
             }
 
-            error!("No matching claim found for {:?} -- available claims: {}!!!", request, claim_resources_str);
-            Err(EvalexprError::CustomMessage(format!("No matching claim found for {:?} -- available claims: {}!!!", request, claim_resources_str)))
+            warn!("DENIED PERMISSION {:?} because no matching claim found -- available claims: {}!!!", request, claim_resources_str);
+            Err(RbacError::Evaluation(format!("No matching claim found for {:?} -- available claims: {}!!!", request, claim_resources_str)))
         } else {
-            Err(EvalexprError::CustomMessage(format!("Could not find principal data for {:?}", request)))
+            Err(RbacError::Evaluation(format!("Could not find principal data for {:?}", request)))
         }
     }
 }

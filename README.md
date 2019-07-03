@@ -17,7 +17,7 @@ SaasRRBAC provides APIs to add support for role and claim based security. It sup
 - Instance/Constraints based security using dynamic context.
 - Roles and claims can be assigned within a range of time period.
 - Restrict access based on geo-fencing
-- Resource accountings, where you can limit and track usage by users and use them as part of instance based security.
+- Resource accountings, where you can enforce quota-limit and track usage by users and use them as part of instance based security.
 
 ## Requirements:
 - Rust
@@ -99,7 +99,7 @@ This layer defines REST services such as:
 	* PrincipalService – this service provides REST APIs for accessing Principals.
     * LicensePolicyService – this service provides REST APIs for accessing license policies.
 	* RoleService – this service provides REST APIs for accessing Roles.
-	* ResourceService – this service provides REST APIs for accessing resources, instances, and limits.
+	* ResourceService – this service provides REST APIs for accessing resources, instances, and quota-limits.
 	* ClaimService – this service provides REST APIs for accessing Claims.
 	* SecurityService – this service provides REST APIs for authorizing claims.
 
@@ -684,6 +684,73 @@ let mut req = PermissionRequest::new(realm.id.as_str(), ali.id.as_str(), ActionT
 req.context.add("appSize", ValueWrapper::Int(5000));
 assert!(security_mgr.check(&req).is_err());
 ```
+
+### Managing Resource Quota
+
+Creating security realm
+```rust
+let realm = mgr.new_realm_with(&ctx, "JobGrid").unwrap();
+```
+
+Creating organization
+```rust
+let abc_corp = mgr.new_org_with(&ctx, "ABC").unwrap();
+let xyz_corp = mgr.new_org_with(&ctx, "XYZ").unwrap();
+```
+
+Create license policies
+```rust
+let abc_policy = mgr.new_license_policy(&ctx, &abc_corp).unwrap();
+let xyz_policy = mgr.new_license_policy(&ctx, &xyz_corp).unwrap();
+```
+
+Creating Resources
+```rust
+let project = mgr.new_resource_with(&ctx, &realm, "Project").unwrap();
+let job = mgr.new_resource_with(&ctx, &realm, "Job").unwrap();
+```
+
+Set Resource Quota for abc corp to setup 1 project and 2 jobs
+
+```rust
+assert!(mgr.new_resource_quota_with(&ctx, &project, &abc_policy, "ABC Project", 1).is_ok());
+assert!(mgr.new_resource_quota_with(&ctx, &job, &abc_policy, "ABC Jobs", 2).is_ok());
+```
+
+Set Resource Quota for xyz corp to setup 2 project and 3 jobs
+```rust
+assert!(mgr.new_resource_quota_with(&ctx, &project, &xyz_policy, "XYZ Project", 2).is_ok());
+assert!(mgr.new_resource_quota_with(&ctx, &job, &xyz_policy, "XYZ Jobs", 3).is_ok());
+```
+
+abc corp can have at most 1 project
+```rust
+assert!(mgr.new_resource_instance_with(&ctx, &project, &abc_policy, "ABC Project", "1", Status::COMPLETED).is_ok());
+assert!(mgr.new_resource_instance_with(&ctx, &project, &abc_policy, "ABC Project", "2", Status::COMPLETED).is_err());
+```
+
+abc corp can have at most 3 jobs
+```rust
+assert!(mgr.new_resource_instance_with(&ctx, &job, &abc_policy, "ABC Jobs", "1", Status::COMPLETED).is_ok());
+assert!(mgr.new_resource_instance_with(&ctx, &job, &abc_policy, "ABC Jobs", "2", Status::COMPLETED).is_ok());
+assert!(mgr.new_resource_instance_with(&ctx, &job, &abc_policy, "ABC Jobs", "3", Status::COMPLETED).is_err());
+```
+
+xyz corp can have at most 2 project
+```rust
+assert!(mgr.new_resource_instance_with(&ctx, &project, &xyz_policy, "XYZ Project", "1", Status::COMPLETED).is_ok());
+assert!(mgr.new_resource_instance_with(&ctx, &project, &xyz_policy, "XYZ Project", "2", Status::COMPLETED).is_ok());
+assert!(mgr.new_resource_instance_with(&ctx, &project, &xyz_policy, "XYZ Project", "3", Status::COMPLETED).is_err());
+```
+
+xyz corp can have at most 4 jobs
+```rust
+assert!(mgr.new_resource_instance_with(&ctx, &job, &xyz_policy, "XYZ Jobs", "1", Status::COMPLETED).is_ok());
+assert!(mgr.new_resource_instance_with(&ctx, &job, &xyz_policy, "XYZ Jobs", "2", Status::COMPLETED).is_ok());
+assert!(mgr.new_resource_instance_with(&ctx, &job, &xyz_policy, "XYZ Jobs", "3", Status::COMPLETED).is_ok());
+assert!(mgr.new_resource_instance_with(&ctx, &job, &xyz_policy, "XYZ Jobs", "4", Status::COMPLETED).is_err());
+```
+
 
 ## Contact
 Please send questions or suggestions to bhatti AT plexobject.com.

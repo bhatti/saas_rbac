@@ -8,7 +8,7 @@ pub mod principal_repository;
 pub mod group_principal_repository;
 pub mod resource_repository;
 pub mod resource_instance_repository;
-pub mod resource_limit_repository;
+pub mod resource_quota_repository;
 pub mod role_repository;
 pub mod claim_claimable_repository;
 pub mod role_roleable_repository;

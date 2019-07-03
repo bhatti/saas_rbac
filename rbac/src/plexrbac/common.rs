@@ -24,6 +24,22 @@ impl std::fmt::Display for Constants {
     }
 }
 
+/// Status
+#[derive(Debug, Clone, PartialEq)]
+pub enum Status {
+    INFLIGHT,
+    PENDING,
+    FAILED,
+    COMPLETED,
+    UNKNOWN
+}
+
+impl std::fmt::Display for Status {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        write!(f, "{:?}", self)
+    }
+}
+
 
 /// Sample ResourceType - feel free to update
 #[derive(Debug, Clone, PartialEq)]
@@ -79,6 +95,54 @@ pub enum ValueWrapper {
     Float(f64),
 }
 
+
+use std::error;
+use std::fmt;
+
+#[derive(Debug, Clone)]
+pub enum RbacError {
+    Persistence(String),
+    Security(String),
+    Evaluation(String),
+    QuotaExceeded(String),
+    Custom(String),
+}
+
+impl fmt::Display for RbacError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match *self {
+            RbacError::Persistence(ref e) => e.fmt(f),
+            RbacError::Security(ref e) => e.fmt(f),
+            RbacError::Evaluation(ref e) => e.fmt(f),
+            RbacError::QuotaExceeded(ref e) => e.fmt(f),
+            RbacError::Custom(ref e) => e.fmt(f),
+        }
+    }
+}
+
+impl error::Error for RbacError {
+    fn description(&self) -> &str {
+        match *self {
+            RbacError::Persistence(ref e) => e.as_str(),
+            RbacError::Security(ref e) => e.as_str(),
+            RbacError::Evaluation(ref e) => e.as_str(),
+            RbacError::QuotaExceeded(ref e) => e.as_str(),
+            RbacError::Custom(ref e) => e.as_str(),
+        }
+    }
+
+    fn cause(&self) -> Option<&error::Error> {
+        match *self {
+            RbacError::Persistence(_) => None,
+            RbacError::Security(_) => None,
+            RbacError::Evaluation(_) => None,
+            RbacError::QuotaExceeded(_) => None,
+            RbacError::Custom(_) => None,
+        }
+    }
+}
+
+
 #[cfg(test)]
 mod tests {
     use plexrbac::common::*;
@@ -110,5 +174,23 @@ mod tests {
         assert_eq!("DOWNLOAD".to_string(), ActionType::DOWNLOAD.to_string());
         assert_eq!("BUILD".to_string(), ActionType::BUILD.to_string());
         assert_eq!("EXECUTE".to_string(), ActionType::EXECUTE.to_string());
+    }
+
+    #[test]
+    fn test_status() {
+        assert_eq!("INFLIGHT".to_string(), Status::INFLIGHT.to_string());
+        assert_eq!("PENDING".to_string(), Status::PENDING.to_string());
+        assert_eq!("FAILED".to_string(), Status::FAILED.to_string());
+        assert_eq!("COMPLETED".to_string(), Status::COMPLETED.to_string());
+        assert_eq!("UNKNOWN".to_string(), Status::UNKNOWN.to_string());
+    }
+
+    #[test]
+    fn test_error() {
+        assert_eq!("test".to_string(), RbacError::Persistence("test".to_string()).to_string());
+        assert_eq!("test".to_string(), RbacError::Security("test".to_string()).to_string());
+        assert_eq!("test".to_string(), RbacError::Evaluation("test".to_string()).to_string());
+        assert_eq!("test".to_string(), RbacError::QuotaExceeded("test".to_string()).to_string());
+        assert_eq!("test".to_string(), RbacError::Custom("test".to_string()).to_string());
     }
 }
