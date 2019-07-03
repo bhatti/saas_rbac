@@ -1,7 +1,7 @@
 //#![crate_name = "doc"]
 
 use diesel::prelude::*;
-use plexrbac::domain::models::Constants;
+use plexrbac::common::Constants;
 use super::schema::rbac_claim_claimables;
 use super::models::PClaimClaimable;
 use chrono::{Utc};

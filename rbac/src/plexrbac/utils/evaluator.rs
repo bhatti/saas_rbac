@@ -1,7 +1,7 @@
 //#![crate_name = "doc"]
 
 use chrono::{NaiveDate, Utc, Datelike};
-use plexrbac::domain::models::ValueWrapper;
+use plexrbac::common::ValueWrapper;
 use std::collections::HashMap;
 use evalexpr::*;
 

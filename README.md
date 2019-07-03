@@ -14,9 +14,10 @@ SaasRRBAC provides APIs to add support for role and claim based security. It sup
 - Roles can be associated with principals or groups of organizations
 - Claim based security, where claims define permittable actions and can be associated directly with principals or
   via roles that are associated to principals.
-- Instance/Constraints based security using dynamic context. 
+- Instance/Constraints based security using dynamic context.
 - Roles and claims can be assigned within a range of time period.
-- Resource accountings, where you can limit and track usage by users and use them as part of instance based security. 
+- Restrict access based on geo-fencing
+- Resource accountings, where you can limit and track usage by users and use them as part of instance based security.
 
 ## Requirements:
 - Rust
@@ -57,20 +58,29 @@ SaasRRBAC consists of following layers
 This layer defines core classes that are part of the RBAC based security realm such as:
 
  * Realm – - The realm allows you to support multiple applications or security realms.
- * Principal – The principal represents an identity and can be mapped to users defined in an application.
+ * Organization – The organization represents the organization that customer belongs to, each customer
+    may belong to different organizations.
+ * Principal – The principal represents an identity of users that belong to customer organizations. Note,
+    this object represents employees/users of customers and not users of hosting provider, though they can
+    be modeled in similar fashion.
+ * LicensePolicy – The license policy represents overall access for the customers and it's mapped to claims.
  * Role – A role represents job title or function.
- * Claim – A claim is composed of operation, target and a condition that is used for dynamic or instance based security.
- * SecurityContext – Provides runtime context for auditing and dynamic evaluation.
- * SecurityError – Upon a claim failure, you can choose to store them in the database using SecurityError.
+ * Resource - The resource represents object that needs to be protected such as APIs, files, data, reports, etc.
+ * Claim – A claim is tied with resources and defines operation and constraints that need to be inforced. It may
+   define dynamic properties for for dynamic or instance based security.
+ * SecurityManager – Checks access permission for principals.
 
 ### Repository Layer
 
 This layer is responsible for accessing or storing above objects in the database. SaasRRBAC uses Sqlite by default but it can be easily mapped to other databases. Following are list of repositories supported by SaasRRBAC:
 
+	* PersistenceManager – provides high level methods to persist or query domain objects for security
 	* RealmRepository – provides database access for Realms.
 	* ClaimRepository – provides database access for Claims.
 	* PrincipalRepository – provides database access for Principals.
 	* RoleRepository – provides database access for Roles.
+	* GroupRepository – provides database access for Groups.
+	* LicensePolicyRepository – provides database access for license-policy
 
 ### Security Layer
 
@@ -85,8 +95,11 @@ This layer proivdes evaluation engine for supporting instance based security.
 This layer defines REST services such as:
 
 	* RealmService – this service provides REST APIs for accessing Realms.
+	* OrganizationService – this service provides REST APIs for accessing Organizations
 	* PrincipalService – this service provides REST APIs for accessing Principals.
+    * LicensePolicyService – this service provides REST APIs for accessing license policies.
 	* RoleService – this service provides REST APIs for accessing Roles.
+	* ResourceService – this service provides REST APIs for accessing resources, instances, and limits.
 	* ClaimService – this service provides REST APIs for accessing Claims.
 	* SecurityService – this service provides REST APIs for authorizing claims.
 
@@ -159,53 +172,53 @@ let mgr = factory.new_persistence_manager();
 Creating security realm
 
 ```rust
-let realm = mgr.new_realm_with(&ctx, "banking").unwrap();
+let realm = mgr.new_realm_with(&ctx, "banking")?;
 ```
 
 Creating organization
 ```rust
-let org = mgr.new_org_with(&ctx, "bank-of-flakes").unwrap();
+let org = mgr.new_org_with(&ctx, "bank-of-flakes")?;
 ```
 
 Creating Users
 ```rust
-let tom = mgr.new_principal_with(&ctx, &org, "tom").unwrap();
-let cassy = mgr.new_principal_with(&ctx, &org, "cassy").unwrap();
-let ali = mgr.new_principal_with(&ctx, &org, "ali").unwrap();
-let mike = mgr.new_principal_with(&ctx, &org, "mike").unwrap();
-let larry = mgr.new_principal_with(&ctx, &org, "larry").unwrap();
+let tom = mgr.new_principal_with(&ctx, &org, "tom")?;
+let cassy = mgr.new_principal_with(&ctx, &org, "cassy")?;
+let ali = mgr.new_principal_with(&ctx, &org, "ali")?;
+let mike = mgr.new_principal_with(&ctx, &org, "mike")?;
+let larry = mgr.new_principal_with(&ctx, &org, "larry")?;
 ```
 
 Creating Roles
 ```rust
-let employee = mgr.new_role_with(&ctx, &realm, &org, "Employee").unwrap();
-let teller = mgr.new_role_with_parent(&ctx, &realm, &org, &employee, "Teller").unwrap();
-let csr = mgr.new_role_with_parent(&ctx, &realm, &org, &teller, "CSR").unwrap();
-let accountant = mgr.new_role_with_parent(&ctx, &realm, &org, &employee, "Accountant").unwrap();
-let accountant_manager = mgr.new_role_with_parent(&ctx, &realm, &org, &accountant, "AccountingManager").unwrap();
-let loan_officer = mgr.new_role_with_parent(&ctx, &realm, &org, &accountant_manager, "LoanOfficer").unwrap();
+let employee = mgr.new_role_with(&ctx, &realm, &org, "Employee")?;
+let teller = mgr.new_role_with_parent(&ctx, &realm, &org, &employee, "Teller")?;
+let csr = mgr.new_role_with_parent(&ctx, &realm, &org, &teller, "CSR")?;
+let accountant = mgr.new_role_with_parent(&ctx, &realm, &org, &employee, "Accountant")?;
+let accountant_manager = mgr.new_role_with_parent(&ctx, &realm, &org, &accountant, "AccountingManager")?;
+let loan_officer = mgr.new_role_with_parent(&ctx, &realm, &org, &accountant_manager, "LoanOfficer")?;
 ```
 
 Creating Resources
 ```rust
-let deposit_account = mgr.new_resource_with(&ctx, &realm, "DepositAccount").unwrap();
-let loan_account = mgr.new_resource_with(&ctx, &realm, "LoanAccount").unwrap();
-let general_ledger = mgr.new_resource_with(&ctx, &realm, "GeneralLedger").unwrap();
-let posting_rules = mgr.new_resource_with(&ctx, &realm, "GeneralLedgerPostingRules").unwrap();
+let deposit_account = mgr.new_resource_with(&ctx, &realm, "DepositAccount")?;
+let loan_account = mgr.new_resource_with(&ctx, &realm, "LoanAccount")?;
+let general_ledger = mgr.new_resource_with(&ctx, &realm, "GeneralLedger")?;
+let posting_rules = mgr.new_resource_with(&ctx, &realm, "GeneralLedgerPostingRules")?;
 ```
 
 Creating claims for resources
 ```rust
-let cd_deposit = mgr.new_claim_with(&ctx, &realm, &deposit_account, "(CREATE|DELETE)").unwrap();
-let ru_deposit = mgr.new_claim_with(&ctx, &realm, &deposit_account, "(READ|UPDATE)").unwrap();
+let cd_deposit = mgr.new_claim_with(&ctx, &realm, &deposit_account, "(CREATE|DELETE)")?;
+let ru_deposit = mgr.new_claim_with(&ctx, &realm, &deposit_account, "(READ|UPDATE)")?;
 
-let cd_loan = mgr.new_claim_with(&ctx, &realm, &loan_account, "(CREATE|DELETE)").unwrap();
-let ru_loan = mgr.new_claim_with(&ctx, &realm, &loan_account, "(READ|UPDATE)").unwrap();
+let cd_loan = mgr.new_claim_with(&ctx, &realm, &loan_account, "(CREATE|DELETE)")?;
+let ru_loan = mgr.new_claim_with(&ctx, &realm, &loan_account, "(READ|UPDATE)")?;
 
-let rd_ledger = mgr.new_claim_with(&ctx, &realm, &general_ledger, "(READ|CREATE)").unwrap();
-let r_glpr = mgr.new_claim_with(&ctx, &realm, &general_ledger, "(READ)").unwrap();
+let rd_ledger = mgr.new_claim_with(&ctx, &realm, &general_ledger, "(READ|CREATE)")?;
+let r_glpr = mgr.new_claim_with(&ctx, &realm, &general_ledger, "(READ)")?;
 
-let cud_glpr = mgr.new_claim_with(&ctx, &realm, &posting_rules, "(CREATE|UPDATE|DELETE)").unwrap();
+let cud_glpr = mgr.new_claim_with(&ctx, &realm, &posting_rules, "(CREATE|UPDATE|DELETE)")?;
 ```
 
 Mapping Principals and Claims to Roles
@@ -235,21 +248,21 @@ let security_mgr = SecurityManager::new(mgr);
 
 Tom, the teller should be able to READ DepositAccount with scope U.S when employeeRegion == Midwest
 ```rust
-let mut req = PermissionRequest::new(realm.id.as_str(), tom.id.as_str(), "READ", "DepositAccount", "U.S.");
+let mut req = PermissionRequest::new(realm.id.as_str(), tom.id.as_str(), ActionType::READ, "DepositAccount", "U.S.");
 req.context.add("employeeRegion", ValueWrapper::String("Midwest".to_string()));
-assert_eq!(PermissionResult::Allow, security_mgr.check(&req).unwrap());
+assert_eq!(PermissionResult::Allow, security_mgr.check(&req)?);
 ```
 
 Tom, the teller should not be able to READ DepositAccount with scope U.S when employeeRegion == Northeast
 ```rust
-let mut req = PermissionRequest::new(realm.id.as_str(), tom.id.as_str(), "READ", "DepositAccount", "U.S.");
+let mut req = PermissionRequest::new(realm.id.as_str(), tom.id.as_str(), ActionType::READ, "DepositAccount", "U.S.");
 req.context.add("employeeRegion", ValueWrapper::String("Northeast".to_string()));
 assert!(security_mgr.check(&req).is_err());
 ```
 
 Tom, the teller should not be able to DELETE DepositAccount with scope U.S when employeeRegion == Midwest
 ```rust
-let mut req = PermissionRequest::new(realm.id.as_str(), tom.id.as_str(), "DELETE", "DepositAccount", "U.S.");
+let mut req = PermissionRequest::new(realm.id.as_str(), tom.id.as_str(), ActionType::DELETE, "DepositAccount", "U.S.");
 req.context.add("employeeRegion", ValueWrapper::String("Midwest".to_string()));
 assert!(security_mgr.check(&req).is_err());
 ```
@@ -257,24 +270,24 @@ assert!(security_mgr.check(&req).is_err());
 Cassy, the CSR should be able to DELETE DepositAccount with scope U.S when employeeRegion == Midwest
 ```rust
 let mgr = factory.new_persistence_manager();
-let mut req = PermissionRequest::new(realm.id.as_str(), cassy.id.as_str(), "DELETE", "DepositAccount", "U.S.");
+let mut req = PermissionRequest::new(realm.id.as_str(), cassy.id.as_str(), ActionType::DELETE, "DepositAccount", "U.S.");
 req.context.add("employeeRegion", ValueWrapper::String("Midwest".to_string()));
-assert_eq!(PermissionResult::Allow, security_mgr.check(&req).unwrap());
+assert_eq!(PermissionResult::Allow, security_mgr.check(&req)?);
 ```
 
 Cassy, the CSR should be able to DELETE DepositAccount with scope U.K when employeeRegion == Midwest
 ```rust
-let mut req = PermissionRequest::new(realm.id.as_str(), cassy.id.as_str(), "DELETE", "DepositAccount", "U.K.");
+let mut req = PermissionRequest::new(realm.id.as_str(), cassy.id.as_str(), ActionType::DELETE, "DepositAccount", "U.K.");
 req.context.add("employeeRegion", ValueWrapper::String("Midwest".to_string()));
 assert!(security_mgr.check(&req).is_err());
 ```
 
 Ali, the Accountant should be able to READ GeneralLedger with scope U.S when employeeRegion == Midwest AND ledgerYear == current_year()
 ```rust
-let mut req = PermissionRequest::new(realm.id.as_str(), ali.id.as_str(), "READ", "GeneralLedger", "U.S.");
+let mut req = PermissionRequest::new(realm.id.as_str(), ali.id.as_str(), ActionType::READ, "GeneralLedger", "U.S.");
 req.context.add("employeeRegion", ValueWrapper::String("Midwest".to_string()));
 req.context.add("ledgerYear", ValueWrapper::Int(Utc::now().naive_utc().year() as i64));
-assert_eq!(PermissionResult::Allow, security_mgr.check(&req).unwrap());
+assert_eq!(PermissionResult::Allow, security_mgr.check(&req)?);
 ```
 
 Ali, the Accountant should not be able to READ GeneralLedger with scope U.S when employeeRegion == Midwest AND ledgerYear is in past
@@ -285,7 +298,7 @@ assert!(security_mgr.check(&req).is_err());
 
 Ali, the Accountant should not be able to DELETE GeneralLedger with scope U.S when employeeRegion == Midwest AND ledgerYear == current_year()
 ```rust
-let mut req = PermissionRequest::new(realm.id.as_str(), ali.id.as_str(), "DELETE", "GeneralLedger", "U.S.");
+let mut req = PermissionRequest::new(realm.id.as_str(), ali.id.as_str(), ActionType::DELETE, "GeneralLedger", "U.S.");
 req.context.add("employeeRegion", ValueWrapper::String("Midwest".to_string()));
 req.context.add("ledgerYear", ValueWrapper::Int(Utc::now().naive_utc().year() as i64));
 assert!(security_mgr.check(&req).is_err());
@@ -293,16 +306,16 @@ assert!(security_mgr.check(&req).is_err());
 
 Mike, the Accountant Manager should be able to DELETE GeneralLedger with scope U.S when employeeRegion == Midwest AND ledgerYear == current_year()
 ```rust
-let mut req = PermissionRequest::new(realm.id.as_str(), mike.id.as_str(), "CREATE", "GeneralLedger", "U.S.");
+let mut req = PermissionRequest::new(realm.id.as_str(), mike.id.as_str(), ActionType::CREATE, "GeneralLedger", "U.S.");
 req.context.add("employeeRegion", ValueWrapper::String("Midwest".to_string()));
 req.context.add("ledgerYear", ValueWrapper::Int(Utc::now().naive_utc().year() as i64));
-assert_eq!(PermissionResult::Allow, security_mgr.check(&req).unwrap());
+assert_eq!(PermissionResult::Allow, security_mgr.check(&req)?);
 ```
 
 
 Mike, the Accountant Manager should not be able to post posting-rules of general-ledger with scope U.S when employeeRegion == Midwest AND ledgerYear == current_year()
 ```rust
-let mut req = PermissionRequest::new(realm.id.as_str(), mike.id.as_str(), "CREATE", "GeneralLedgerPostingRules", "U.S.");
+let mut req = PermissionRequest::new(realm.id.as_str(), mike.id.as_str(), ActionType::CREATE, "GeneralLedgerPostingRules", "U.S.");
 req.context.add("employeeRegion", ValueWrapper::String("Midwest".to_string()));
 req.context.add("ledgerYear", ValueWrapper::Int(Utc::now().naive_utc().year() as i64));
 req.context.add("accountBlance", ValueWrapper::Int(500));
@@ -311,11 +324,11 @@ assert!(security_mgr.check(&req).is_err());
 
 Larry, the Loan Officer should be able to post posting-rules of general-ledger with scope U.S when employeeRegion == Midwest AND ledgerYear == current_year()
 ```rust
-let mut req = PermissionRequest::new(realm.id.as_str(), larry.id.as_str(), "CREATE", "GeneralLedgerPostingRules", "U.S.");
+let mut req = PermissionRequest::new(realm.id.as_str(), larry.id.as_str(), ActionType::CREATE, "GeneralLedgerPostingRules", "U.S.");
 req.context.add("employeeRegion", ValueWrapper::String("Midwest".to_string()));
 req.context.add("ledgerYear", ValueWrapper::Int(Utc::now().naive_utc().year() as i64));
 req.context.add("accountBlance", ValueWrapper::Int(500));
-assert_eq!(PermissionResult::Allow, security_mgr.check(&req).unwrap());
+assert_eq!(PermissionResult::Allow, security_mgr.check(&req)?);
 ```
 
 ### Expense Report
@@ -330,24 +343,24 @@ mgr.clear();
 
 Creating security realm
 ```rust
-let realm = mgr.new_realm_with(&ctx, "expense").unwrap();
+let realm = mgr.new_realm_with(&ctx, "expense")?;
 ```
 
 Creating organization
 ```rust
-let org = mgr.new_org_with(&ctx, "box-air").unwrap();
+let org = mgr.new_org_with(&ctx, "box-air")?;
 ```
 
 Creating Groups
 ```rust
-let group_employee = mgr.new_group_with(&ctx, &org, "Employee").unwrap();
-let group_manager = mgr.new_group_with_parent(&ctx, &org, &group_employee, "Manager").unwrap();
+let group_employee = mgr.new_group_with(&ctx, &org, "Employee")?;
+let group_manager = mgr.new_group_with_parent(&ctx, &org, &group_employee, "Manager")?;
 ```
 
 Creating Users
 ```rust
-let tom = mgr.new_principal_with(&ctx, &org, "tom").unwrap();
-let mike = mgr.new_principal_with(&ctx, &org, "mike").unwrap();
+let tom = mgr.new_principal_with(&ctx, &org, "tom")?;
+let mike = mgr.new_principal_with(&ctx, &org, "mike")?;
 ```
 
 Mapping users to groups
@@ -359,19 +372,19 @@ mgr.map_principal_to_group(&ctx, &mike, &group_manager);
 
 Creating Roles
 ```rust
-let employee = mgr.new_role_with(&ctx, &realm, &org, "Employee").unwrap();
-let manager = mgr.new_role_with_parent(&ctx, &realm, &org, &employee, "Manager").unwrap();
+let employee = mgr.new_role_with(&ctx, &realm, &org, "Employee")?;
+let manager = mgr.new_role_with_parent(&ctx, &realm, &org, &employee, "Manager")?;
 ```
 
 Creating Resources
 ```rust
-let expense_report = mgr.new_resource_with(&ctx, &realm, "ExpenseReport").unwrap();
+let expense_report = mgr.new_resource_with(&ctx, &realm, "ExpenseReport")?;
 ```
 
 Creating claims for resources
 ```rust
-let submit_report = mgr.new_claim_with(&ctx, &realm, &expense_report, "(SUBMIT|VIEW)").unwrap();
-let approve_report = mgr.new_claim_with(&ctx, &realm, &expense_report, "APPROVE").unwrap();
+let submit_report = mgr.new_claim_with(&ctx, &realm, &expense_report, "(SUBMIT|VIEW)")?;
+let approve_report = mgr.new_claim_with(&ctx, &realm, &expense_report, "APPROVE")?;
 ```
 
 Mapping Principals and Claims to Roles
@@ -393,25 +406,284 @@ let security_mgr = SecurityManager::new(mgr);
 
 Tom should be able to submit report
 ```rust
-let mut req = PermissionRequest::new(realm.id.as_str(), tom.id.as_str(), "SUBMIT", "ExpenseReport", "U.S.");
+let mut req = PermissionRequest::new(realm.id.as_str(), tom.id.as_str(), ActionType::SUBMIT, "ExpenseReport", "U.S.");
 req.context.add("amount", ValueWrapper::Int(1000));
-assert_eq!(PermissionResult::Allow, security_mgr.check(&req).unwrap());
+assert_eq!(PermissionResult::Allow, security_mgr.check(&req)?);
 ```
 
 Tom should not be able to approve report
 ```rust
-let mut req = PermissionRequest::new(realm.id.as_str(), tom.id.as_str(), "APPROVE", "ExpenseReport", "U.S.");
+let mut req = PermissionRequest::new(realm.id.as_str(), tom.id.as_str(), ActionType::APPROVE, "ExpenseReport", "U.S.");
 req.context.add("amount", ValueWrapper::Int(1000));
 assert!(security_mgr.check(&req).is_err());
 ```
 
 Mike should be able to approve report
 ```rust
-let mut req = PermissionRequest::new(realm.id.as_str(), mike.id.as_str(), "APPROVE", "ExpenseReport", "U.S.");
+let mut req = PermissionRequest::new(realm.id.as_str(), mike.id.as_str(), ActionType::APPROVE, "ExpenseReport", "U.S.");
 req.context.add("amount", ValueWrapper::Int(1000));
-assert_eq!(PermissionResult::Allow, security_mgr.check(&req).unwrap());
+assert_eq!(PermissionResult::Allow, security_mgr.check(&req)?);
 ```
 
+### Feature flag with Geo-Fencing
+Initialize context and repository
+```rust
+let ctx = SecurityContext::new("0".into(), "0".into());
+let factory = RepositoryFactory::new();
+let mgr = factory.new_persistence_manager();
+mgr.clear();
+```
+
+Creating security realm
+```rust
+let realm = mgr.new_realm_with(&ctx, "ada")?;
+```
+
+Creating organization
+```rust
+let org = mgr.new_org_with(&ctx, "ada")?;
+```
+
+Creating Users
+```rust
+let tom = mgr.new_principal_with(&ctx, &org, "tom")?;
+let mike = mgr.new_principal_with(&ctx, &org, "mike")?;
+```
+
+Creating Roles
+```rust
+let customer = mgr.new_role_with(&ctx, &realm, &org, "Customer")?;
+let beta_customer = mgr.new_role_with_parent(&ctx, &realm, &org, &customer, "BetaCustomer")?;
+```
+
+Creating Resources
+```rust
+let feature = mgr.new_resource_with(&ctx, &realm, "Feature")?;
+```
+
+Creating claims for resources
+```rust
+let view = mgr.new_claim_with(&ctx, &realm, &feature, "VIEW")?;
+```
+
+Mapping Principals and Claims to Roles
+```rust
+mgr.map_principal_to_role(&ctx, &tom, &customer);
+mgr.map_principal_to_role(&ctx, &mike, &beta_customer);
+```
+
+Map claims to roles as follows:
+```rust
+mgr.map_role_to_claim(&ctx, &customer, &view, "UI::Flag::BasicReport", r#"geo_distance_km(customer_lat, customer_lon, 47.620422, -122.349358) < 100"#);
+mgr.map_role_to_claim(&ctx, &beta_customer, &view, "UI::Flag::AdvancedReport", r#"geo_distance_km(customer_lat, customer_lon, 47.620422, -122.349358) < 200"#);
+```
+
+Tom should be able to view basic report if he lives close to Seattle
+```rust
+let mut req = PermissionRequest::new(realm.id.as_str(), tom.id.as_str(), ActionType::VIEW, "Feature", "UI::Flag::BasicReport");
+req.context.add("customer_lat", ValueWrapper::Float(46.879967));
+req.context.add("customer_lon", ValueWrapper::Float(-121.726906));
+assert_eq!(PermissionResponse::Allow, security_mgr.check(&req)?);
+```
+
+Tom should not be able to view basic report if he lives far from Seattle
+```rust
+let mut req = PermissionRequest::new(realm.id.as_str(), tom.id.as_str(), ActionType::VIEW, "Feature", "UI::Flag::BasicReport");
+req.context.add("customer_lat", ValueWrapper::Float(37.3230));
+req.context.add("customer_lon", ValueWrapper::Float(-122.0322));
+assert!(security_mgr.check(&req).is_err());
+```
+
+Tom should not be able to view advanced report
+```rust
+let mut req = PermissionRequest::new(realm.id.as_str(), tom.id.as_str(), ActionType::VIEW, "Feature", "UI::Flag::AdvancedReport");
+req.context.add("customer_lat", ValueWrapper::Float(46.879967));
+req.context.add("customer_lon", ValueWrapper::Float(-121.726906));
+assert!(security_mgr.check(&req).is_err());
+```
+
+Mike should be able to view advanced report
+```rust
+let mut req = PermissionRequest::new(realm.id.as_str(), mike.id.as_str(), ActionType::VIEW, "Feature", "UI::Flag::AdvancedReport");
+req.context.add("customer_lat", ValueWrapper::Float(46.879967));
+req.context.add("customer_lon", ValueWrapper::Float(-121.726906));
+assert_eq!(PermissionResponse::Allow, security_mgr.check(&req)?);
+```
+
+Mike should not be able to view advanced report if he lives far from Seattle
+```rust
+let mut req = PermissionRequest::new(realm.id.as_str(), mike.id.as_str(), ActionType::VIEW, "Feature", "UI::Flag::AdvancedReport");
+req.context.add("customer_lat", ValueWrapper::Float(37.3230));
+req.context.add("customer_lon", ValueWrapper::Float(-122.0322));
+assert!(security_mgr.check(&req).is_err());
+```
+
+### Using License Policy to restrict access to different level of features
+
+// Creating organization
+```rust
+let freemium_org = mgr.new_org_with(&ctx, "Freeloader")?;
+let paid_org = mgr.new_org_with(&ctx, "Moneymaker")?;
+```
+
+Create license policies
+```rust
+let freemium_policy = mgr.new_license_policy(&ctx, &freemium_org)?;
+let paid_policy = mgr.new_license_policy(&ctx, &paid_org)?;
+```
+
+Creating Users
+```rust
+let freemium_frank = mgr.new_principal_with(&ctx, &freemium_org, "frank")?;
+let money_matt = mgr.new_principal_with(&ctx, &paid_org, "matt")?;
+```
+
+Creating Roles
+```rust
+let customer = mgr.new_role_with(&ctx, &realm, &freemium_org, "Customer")?;
+let paid_customer = mgr.new_role_with(&ctx, &realm, &paid_org, "PaidCustomer")?;
+```
+
+Creating Resources
+```rust
+let feature = mgr.new_resource_with(&ctx, &realm, "Feature")?;
+```
+
+Creating claims for resources
+```rust
+let view = mgr.new_claim_with(&ctx, &realm, &feature, "VIEW")?;
+```
+
+Mapping Principals and Claims to Roles
+```rust
+mgr.map_principal_to_role(&ctx, &freemium_frank, &customer);
+mgr.map_principal_to_role(&ctx, &money_matt, &customer);
+mgr.map_principal_to_role(&ctx, &money_matt, &paid_customer);
+```
+
+Map claims to policies as follows:
+```rust
+mgr.map_license_policy_to_claim(&ctx, &freemium_policy, &view, "UI::Flag::BasicReport", "");
+mgr.map_license_policy_to_claim(&ctx, &paid_policy, &view, "UI::Flag::AdvancedReport", "");
+```
+
+Map claims to roles as follows:
+```rust
+mgr.map_role_to_claim(&ctx, &customer, &view, "UI::Flag::BasicReport", "");
+mgr.map_role_to_claim(&ctx, &paid_customer, &view, "UI::Flag::AdvancedReport", "");
+```
+
+Frank should be able to view basic report
+```rust
+let req = PermissionRequest::new(realm.id.as_str(), freemium_frank.id.as_str(), ActionType::VIEW, "Feature", "UI::Flag::BasicReport");
+assert_eq!(PermissionResponse::Allow, security_mgr.check(&req)?);
+```
+
+Frank should not be able to view advanced report
+```rust
+let req = PermissionRequest::new(realm.id.as_str(), freemium_frank.id.as_str(), ActionType::VIEW, "Feature", "UI::Flag::AdvancedReport");
+assert!(security_mgr.check(&req).is_err());
+```
+
+Matt should be able to view advanced report
+```rust
+let req = PermissionRequest::new(realm.id.as_str(), money_matt.id.as_str(), ActionType::VIEW, "Feature", "UI::Flag::AdvancedReport");
+assert_eq!(PermissionResponse::Allow, security_mgr.check(&req)?);
+```
+### Using Multiple teams for roles
+Create license policies
+```rust
+let policy = mgr.new_license_policy(&ctx, &org)?;
+```
+
+Creating Users
+```rust
+let dave = mgr.new_principal_with(&ctx, &org, "dave")?;
+let qari = mgr.new_principal_with(&ctx, &org, "qari")?;
+let ali = mgr.new_principal_with(&ctx, &org, "ali")?;
+```
+
+Creating Roles
+```rust
+let developer = mgr.new_role_with(&ctx, &realm, &org, "Developer")?;
+let qa = mgr.new_role_with(&ctx, &realm, &org, "QA")?;
+let admin = mgr.new_role_with_parent(&ctx, &realm, &org, &developer, "Admin")?;
+```
+
+Creating Resources
+```rust
+let app = mgr.new_resource_with(&ctx, &realm, "App")?;
+```
+
+Creating claims for resources
+```rust
+let submit_view = mgr.new_claim_with(&ctx, &realm, &app, "(SUBMIT|VIEW)")?;
+let view = mgr.new_claim_with(&ctx, &realm, &app, "VIEW")?;
+let create_delete = mgr.new_claim_with(&ctx, &realm, &app, "(CREATE|DELETE)")?;
+```
+
+Mapping Principals and Claims to Roles
+```rust
+mgr.map_principal_to_role(&ctx, &dave, &developer);
+mgr.map_principal_to_role(&ctx, &qari, &qa);
+mgr.map_principal_to_role(&ctx, &ali, &admin);
+```
+
+Map claims to policies as follows:
+```rust
+mgr.map_license_policy_to_claim(&ctx, &policy, &submit_view, "com.xyz.app", "appSize < 1000");
+mgr.map_license_policy_to_claim(&ctx, &policy, &view, "com.xyz.app", "appSize < 1000");
+mgr.map_license_policy_to_claim(&ctx, &policy, &create_delete, "com.xyz.app", "");
+```
+
+Map claims to roles as follows:
+```rust
+mgr.map_role_to_claim(&ctx, &developer, &submit_view, "com.xyz.app", "appSize < 1000");
+mgr.map_role_to_claim(&ctx, &qa, &view, "com.xyz.app", "appSize < 1000");
+mgr.map_role_to_claim(&ctx, &admin, &create_delete, "com.xyz.app", "");
+```
+
+Dave should be able to submit app
+```rust
+let mut req = PermissionRequest::new(realm.id.as_str(), dave.id.as_str(), ActionType::SUBMIT, "App", "com.xyz.app");
+req.context.add("appSize", ValueWrapper::Int(500));
+assert_eq!(PermissionResponse::Allow, security_mgr.check(&req)?);
+```
+
+Qari should be able to view app
+```rust
+let mut req = PermissionRequest::new(realm.id.as_str(), qari.id.as_str(), ActionType::VIEW, "App", "com.xyz.app");
+req.context.add("appSize", ValueWrapper::Int(500));
+assert_eq!(PermissionResponse::Allow, security_mgr.check(&req)?);
+```
+
+Qari should not be able to create app
+```rust
+let mut req = PermissionRequest::new(realm.id.as_str(), qari.id.as_str(), ActionType::CREATE, "App", "com.xyz.app");
+req.context.add("appSize", ValueWrapper::Int(500));
+assert!(security_mgr.check(&req).is_err());
+```
+
+Ali should be able to create app
+```rust
+let mut req = PermissionRequest::new(realm.id.as_str(), ali.id.as_str(), ActionType::CREATE, "App", "com.xyz.app");
+req.context.add("appSize", ValueWrapper::Int(500));
+assert_eq!(PermissionResponse::Allow, security_mgr.check(&req)?);
+```
+
+Ali should be able to submit app
+```rust
+let mut req = PermissionRequest::new(realm.id.as_str(), ali.id.as_str(), ActionType::SUBMIT, "App", "com.xyz.app");
+req.context.add("appSize", ValueWrapper::Int(500));
+assert_eq!(PermissionResponse::Allow, security_mgr.check(&req)?);
+```
+
+Ali should not be able to submit app with large app
+```rust
+let mut req = PermissionRequest::new(realm.id.as_str(), ali.id.as_str(), ActionType::SUBMIT, "App", "com.xyz.app");
+req.context.add("appSize", ValueWrapper::Int(5000));
+assert!(security_mgr.check(&req).is_err());
+```
 
 ## Contact
 Please send questions or suggestions to bhatti AT plexobject.com.

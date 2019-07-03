@@ -11,50 +11,6 @@ use std::collections::HashMap;
 //////////////////////////////////////////////////////////////////////////////////////////////
 
 
-/// Constants
-#[derive(Debug, Clone, PartialEq)]
-pub enum Constants {
-    Principal,
-    Role,
-    Group,
-    LicensePolicy,
-    Allow,
-    Deny
-}
-
-impl std::fmt::Display for Constants {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        write!(f, "{:?}", self)
-    }
-}
-
-/// ClaimResult
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub enum PermissionResult {
-    Allow,
-    Deny
-}
-
-impl PermissionResult {
-    pub fn from(value: String) -> PermissionResult {
-        if value == Constants::Allow.to_string() {
-            PermissionResult::Allow
-        } else {
-            PermissionResult::Deny
-        }
-    }
-}
-
-
-/// ValueWrapper is used to wrap values inside hashmap
-#[derive(Debug, Clone, PartialEq)]
-pub enum ValueWrapper {
-    Bool(bool),
-    String(String),
-    Int(i64),
-    Float(f64),
-}
-
 /// SecurityRealm defines abstraction for security realm that encompasses roles/claims
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct SecurityRealm {
@@ -570,6 +526,7 @@ impl Role {
 /// ClaimClaimable defines mapping of claim and claimable
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum ClaimClaimable {
+    Realm(Claim, String), // realm
     LicensePolicy(Claim, String, String, String), // realm, scope, constraints
     Role(Claim, String, String, String, String), // realm, role-id, scope, constraints
     Principal(Claim, String, String, String, String), // realm, principal-id, scope, constraints
@@ -578,6 +535,7 @@ pub enum ClaimClaimable {
 impl std::fmt::Display for ClaimClaimable {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         match self {
+            ClaimClaimable::Realm(claim, realm) => write!(f, "\n\trealm-claim: {}\t\trealm: {}", claim, realm),
             ClaimClaimable::LicensePolicy(claim, _realm, scope, constraints) => write!(f, "\n\tlicense-claim: {}\t\tscope: {}, constraints: {}", claim, scope, constraints),
             ClaimClaimable::Role(claim, _, _realm, scope, constraints) => write!(f, "\n\trole-claim: {}\t\tscope: {}, constraints: {}", claim, scope, constraints),
             ClaimClaimable::Principal(claim, _, _realm, scope, constraints) => write!(f, "\n\tprincipal-claim: {}\t\tscope: {}, constraints: {}", claim, scope, constraints),

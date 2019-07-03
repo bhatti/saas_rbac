@@ -2,6 +2,7 @@ mod domain;
 mod security;
 mod persistence;
 mod utils;
+mod common;
 
 pub fn top() {
     let factory = persistence::factory::RepositoryFactory::new();

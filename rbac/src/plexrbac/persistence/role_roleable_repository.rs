@@ -3,7 +3,7 @@
 use diesel::prelude::*;
 use super::schema::rbac_role_roleables;
 use super::models::PRoleRoleable;
-use plexrbac::domain::models::Constants;
+use plexrbac::common::Constants;
 use chrono::{Utc};
 
 //////////////////////////////////////////////////////////////////////////////////////////////

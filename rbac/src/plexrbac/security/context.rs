@@ -2,7 +2,7 @@
 
 use std::collections::HashMap;
 use plexrbac::utils::evaluator;
-use plexrbac::domain::models::ValueWrapper;
+use plexrbac::common::ValueWrapper;
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -39,7 +39,7 @@ impl SecurityContext {
 #[cfg(test)]
 mod tests {
     use plexrbac::security::context::{SecurityContext};
-    use plexrbac::domain::models::{ValueWrapper};
+    use plexrbac::common::ValueWrapper;
     use chrono::{Utc, Datelike};
 
     #[test]
