@@ -5,9 +5,9 @@ CREATE TABLE IF NOT EXISTS rbac_resources (
   description TEXT,
   allowable_actions TEXT,
   created_by VARCHAR(36),
-  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_by VARCHAR(36),
-  updated_at TIMESTAMP  NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT rbac_resources_realm_fk FOREIGN KEY (realm_id)
         REFERENCES rbac_realms(id)
 );
@@ -23,9 +23,9 @@ CREATE TABLE IF NOT EXISTS rbac_resource_instances (
   status VARCHAR(50) NOT NULL DEFAULT "INFLIGHT",
   description TEXT,
   created_by VARCHAR(36),
-  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_by VARCHAR(36),
-  updated_at TIMESTAMP  NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT rbac_resource_instances_policy_fk FOREIGN KEY (license_policy_id)
         REFERENCES rbac_license_policies(id),
   CONSTRAINT rbac_resource_instances_resource_fk FOREIGN KEY (resource_id)
@@ -44,9 +44,9 @@ CREATE TABLE IF NOT EXISTS rbac_resource_quotas (
   effective_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   expired_at TIMESTAMP NOT NULL,
   created_by VARCHAR(36),
-  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_by VARCHAR(36),
-  updated_at TIMESTAMP  NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT rbac_resource_instances_policy_fk FOREIGN KEY (license_policy_id)
         REFERENCES rbac_license_policies(id),
   CONSTRAINT rbac_resource_quotas_resources_fk FOREIGN KEY (resource_id)
@@ -56,3 +56,4 @@ CREATE TABLE IF NOT EXISTS rbac_resource_quotas (
 CREATE UNIQUE INDEX IF NOT EXISTS rbac_resources_quotas_ref_ndx ON rbac_resource_quotas(resource_id, scope, license_policy_id);
 CREATE INDEX IF NOT EXISTS rbac_resources_quotas_date_ndx ON rbac_resource_quotas(resource_id, license_policy_id, scope, effective_at, expired_at);
 
+INSERT INTO rbac_resources VALUES('00000000-0000-0000-0000-000000000000', 'default', 'METHODS', NULL, 'EXECUTE', '00000000-0000-0000-0000-000000000000', CURRENT_TIMESTAMP, '00000000-0000-0000-0000-000000000000', CURRENT_TIMESTAMP);

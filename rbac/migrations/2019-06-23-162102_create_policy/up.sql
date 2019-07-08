@@ -6,9 +6,9 @@ CREATE TABLE IF NOT EXISTS rbac_license_policies (
   effective_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   expired_at TIMESTAMP NOT NULL,
   created_by VARCHAR(36),
-  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_by VARCHAR(36),
-  updated_at TIMESTAMP  NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT rbac_license_policies_org_fk FOREIGN KEY (organization_id)
         REFERENCES rbac_organizations(id)
 );

@@ -4,5 +4,5 @@ CREATE TABLE IF NOT EXISTS rbac_audit_records (
   action VARCHAR(100),
   context TEXT,
   created_by VARCHAR(36),
-  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );

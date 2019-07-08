@@ -1,6 +1,6 @@
 //#![crate_name = "doc"]
     
-use plexrbac::security::context::SecurityContext;
+use plexrbac::common::SecurityContext;
 use plexrbac::common::ActionType;
 
 ////////////////////////////////////////////////////////////////////////////////

@@ -34,7 +34,7 @@ impl <'a> SecurityManager<'a> {
                             Ok(ok) => {
                                 if ok {
                                     info!("GRANTED PERMISSION {:?} -- {:?}", request, cr.claim);
-                                    return Ok(PermissionResponse::from(cr.claim.effect));
+                                    return Ok(PermissionResponse::from(cr.claim.effect()));
                                 } else {
                                     //println!(">>>>>>>>> EVALUATED FALSE for {} -- {:?}\n{:?}", cr.constraints.as_str(), cr, request);
                                 }
@@ -42,7 +42,7 @@ impl <'a> SecurityManager<'a> {
                             Err(err) => return Err(RbacError::Evaluation(err.to_string())),
                         }
                     } else {
-                        return Ok(PermissionResponse::from(cr.claim.effect));
+                        return Ok(PermissionResponse::from(cr.claim.effect()));
                     }
                 }
             }
@@ -58,8 +58,9 @@ impl <'a> SecurityManager<'a> {
 
 #[cfg(test)]
 mod tests {
-    use plexrbac::persistence::factory::RepositoryFactory;
-    use plexrbac::security::context::SecurityContext;
+    use plexrbac::persistence::locator::RepositoryLocator;
+    use plexrbac::persistence::data_source::DefaultDataSource;
+    use plexrbac::common::SecurityContext;
     use plexrbac::security::manager::SecurityManager;
     use plexrbac::security::request::PermissionRequest;
     use plexrbac::security::response::PermissionResponse;
@@ -69,40 +70,41 @@ mod tests {
     fn test_evaluate() {
         // Initialize context and repository
         let ctx = SecurityContext::new("0".into(), "0".into());
-        let factory = RepositoryFactory::new();
-        let mgr = factory.new_persistence_manager();
-        mgr.clear();
+        let cf = DefaultDataSource::new();
+        let locator = RepositoryLocator::new(&cf);
+        let pm = locator.new_persistence_manager();
+        pm.clear();
         // Bootstrapping dependent data
 
         // Creating security realm
-        let realm = mgr.new_realm_with(&ctx, "banking").unwrap();
+        let realm = pm.new_realm_with(&ctx, "banking").unwrap();
 
         // Creating organization
-        let org = mgr.new_org_with(&ctx, "bank-of-flakes").unwrap();
+        let org = pm.new_org_with(&ctx, "bank-of-flakes").unwrap();
 
         // Creating Users
-        let tom = mgr.new_principal_with(&ctx, &org, "tom").unwrap();
+        let tom = pm.new_principal_with(&ctx, &org, "tom").unwrap();
 
         // Creating Roles
-        let employee = mgr.new_role_with(&ctx, &realm, &org, "Employee").unwrap();
-        let teller = mgr.new_role_with_parent(&ctx, &realm, &org, &employee, "Teller").unwrap();
+        let employee = pm.new_role_with(&ctx, &realm, &org, "Employee").unwrap();
+        let teller = pm.new_role_with_parent(&ctx, &realm, &org, &employee, "Teller").unwrap();
 
         // Creating Resources
-        let deposit_account = mgr.new_resource_with(&ctx, &realm, "DepositAccount").unwrap();
+        let deposit_account = pm.new_resource_with(&ctx, &realm, "DepositAccount").unwrap();
 
         // Creating claims for resources
-        let _cd_deposit = mgr.new_claim_with(&ctx, &realm, &deposit_account, "(CREATE|DELETE)").unwrap();
-        let ru_deposit = mgr.new_claim_with(&ctx, &realm, &deposit_account, "(READ|UPDATE)").unwrap();
+        let _cd_deposit = pm.new_claim_with(&ctx, &realm, &deposit_account, "(CREATE|DELETE)").unwrap();
+        let ru_deposit = pm.new_claim_with(&ctx, &realm, &deposit_account, "(READ|UPDATE)").unwrap();
 
         // Mapping Principals and Claims to Roles
-        mgr.map_principal_to_role(&ctx, &tom, &teller);
+        pm.map_principal_to_role(&ctx, &tom, &teller);
 
         // Map claims to roles as follows:
-        mgr.map_role_to_claim(&ctx, &teller, &ru_deposit, "U.S.", r#"employeeRegion == "Midwest""#);
+        pm.map_role_to_claim(&ctx, &teller, &ru_deposit, "U.S.", r#"employeeRegion == "Midwest""#);
 
-        let security_mgr = SecurityManager::new(mgr);
+        let sm = SecurityManager::new(pm);
         let mut req = PermissionRequest::new(realm.id.as_str(), tom.id.as_str(), ActionType::READ, "DepositAccount", "U.S.");
         req.context.add("employeeRegion", ValueWrapper::String("Midwest".to_string()));
-        assert_eq!(PermissionResponse::Allow, security_mgr.check(&req).unwrap());
+        assert_eq!(PermissionResponse::Allow, sm.check(&req).unwrap());
     }
 }

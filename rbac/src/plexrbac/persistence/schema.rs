@@ -5,7 +5,7 @@ table! {
         action -> Nullable<Text>,
         context -> Nullable<Text>,
         created_by -> Nullable<Text>,
-        created_at -> Timestamp,
+        created_at -> Nullable<Timestamp>,
     }
 }
 
@@ -15,13 +15,13 @@ table! {
         claimable_id -> Text,
         claimable_type -> Text,
         scope -> Text,
-        claim_constraints -> Text,
+        claim_constraints -> Nullable<Text>,
         effective_at -> Timestamp,
         expired_at -> Timestamp,
         created_by -> Nullable<Text>,
-        created_at -> Timestamp,
+        created_at -> Nullable<Timestamp>,
         updated_by -> Nullable<Text>,
-        updated_at -> Timestamp,
+        updated_at -> Nullable<Timestamp>,
     }
 }
 
@@ -31,12 +31,12 @@ table! {
         realm_id -> Text,
         resource_id -> Text,
         action -> Text,
-        effect -> Text,
+        effect -> Nullable<Text>,
         description -> Nullable<Text>,
         created_by -> Nullable<Text>,
-        created_at -> Timestamp,
+        created_at -> Nullable<Timestamp>,
         updated_by -> Nullable<Text>,
-        updated_at -> Timestamp,
+        updated_at -> Nullable<Timestamp>,
     }
 }
 
@@ -45,9 +45,9 @@ table! {
         group_id -> Text,
         principal_id -> Text,
         created_by -> Nullable<Text>,
-        created_at -> Timestamp,
+        created_at -> Nullable<Timestamp>,
         updated_by -> Nullable<Text>,
-        updated_at -> Timestamp,
+        updated_at -> Nullable<Timestamp>,
     }
 }
 
@@ -59,9 +59,9 @@ table! {
         name -> Text,
         description -> Nullable<Text>,
         created_by -> Nullable<Text>,
-        created_at -> Timestamp,
+        created_at -> Nullable<Timestamp>,
         updated_by -> Nullable<Text>,
-        updated_at -> Timestamp,
+        updated_at -> Nullable<Timestamp>,
     }
 }
 
@@ -74,9 +74,9 @@ table! {
         effective_at -> Timestamp,
         expired_at -> Timestamp,
         created_by -> Nullable<Text>,
-        created_at -> Timestamp,
+        created_at -> Nullable<Timestamp>,
         updated_by -> Nullable<Text>,
-        updated_at -> Timestamp,
+        updated_at -> Nullable<Timestamp>,
     }
 }
 
@@ -88,9 +88,9 @@ table! {
         url -> Text,
         description -> Nullable<Text>,
         created_by -> Nullable<Text>,
-        created_at -> Timestamp,
+        created_at -> Nullable<Timestamp>,
         updated_by -> Nullable<Text>,
-        updated_at -> Timestamp,
+        updated_at -> Nullable<Timestamp>,
     }
 }
 
@@ -101,20 +101,20 @@ table! {
         username -> Text,
         description -> Nullable<Text>,
         created_by -> Nullable<Text>,
-        created_at -> Timestamp,
+        created_at -> Nullable<Timestamp>,
         updated_by -> Nullable<Text>,
-        updated_at -> Timestamp,
+        updated_at -> Nullable<Timestamp>,
     }
 }
 
 table! {
     rbac_realms (id) {
         id -> Text,
-        description -> Text,
+        description -> Nullable<Text>,
         created_by -> Nullable<Text>,
-        created_at -> Timestamp,
+        created_at -> Nullable<Timestamp>,
         updated_by -> Nullable<Text>,
-        updated_at -> Timestamp,
+        updated_at -> Nullable<Timestamp>,
     }
 }
 
@@ -128,9 +128,9 @@ table! {
         status -> Text,
         description -> Nullable<Text>,
         created_by -> Nullable<Text>,
-        created_at -> Timestamp,
+        created_at -> Nullable<Timestamp>,
         updated_by -> Nullable<Text>,
-        updated_at -> Timestamp,
+        updated_at -> Nullable<Timestamp>,
     }
 }
 
@@ -144,9 +144,9 @@ table! {
         effective_at -> Timestamp,
         expired_at -> Timestamp,
         created_by -> Nullable<Text>,
-        created_at -> Timestamp,
+        created_at -> Nullable<Timestamp>,
         updated_by -> Nullable<Text>,
-        updated_at -> Timestamp,
+        updated_at -> Nullable<Timestamp>,
     }
 }
 
@@ -158,9 +158,9 @@ table! {
         description -> Nullable<Text>,
         allowable_actions -> Nullable<Text>,
         created_by -> Nullable<Text>,
-        created_at -> Timestamp,
+        created_at -> Nullable<Timestamp>,
         updated_by -> Nullable<Text>,
-        updated_at -> Timestamp,
+        updated_at -> Nullable<Timestamp>,
     }
 }
 
@@ -169,13 +169,13 @@ table! {
         role_id -> Text,
         roleable_id -> Text,
         roleable_type -> Text,
-        role_constraints -> Text,
+        role_constraints -> Nullable<Text>,
         effective_at -> Timestamp,
         expired_at -> Timestamp,
         created_by -> Nullable<Text>,
-        created_at -> Timestamp,
+        created_at -> Nullable<Timestamp>,
         updated_by -> Nullable<Text>,
-        updated_at -> Timestamp,
+        updated_at -> Nullable<Timestamp>,
     }
 }
 
@@ -188,9 +188,9 @@ table! {
         name -> Text,
         description -> Nullable<Text>,
         created_by -> Nullable<Text>,
-        created_at -> Timestamp,
+        created_at -> Nullable<Timestamp>,
         updated_by -> Nullable<Text>,
-        updated_at -> Timestamp,
+        updated_at -> Nullable<Timestamp>,
     }
 }
 

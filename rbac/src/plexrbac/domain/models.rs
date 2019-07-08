@@ -1,6 +1,7 @@
 //#![crate_name = "doc"]
 
 use plexrbac::persistence::models::*;
+use plexrbac::common::Constants;
 use chrono::{NaiveDateTime, Utc};
 use std::collections::HashMap;
 
@@ -15,29 +16,26 @@ use std::collections::HashMap;
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct SecurityRealm {
     pub id: String,
-    pub description: String,
-    pub resources: HashMap<String, Resource>,
-    pub claims: HashMap<String, Claim>, // All Claims that are defined by the realm
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
 }
 
 impl SecurityRealm {
     /// Creates instance from persistent realm
     pub fn from(realm: &PSecurityRealm) -> SecurityRealm {
-        SecurityRealm::new(realm.id.as_str(), realm.description.as_str())
+        SecurityRealm::new(realm.id.as_str(), realm.description.clone())
     }
 
     /// Creates instance of persistent realm
     pub fn to(&self) -> PSecurityRealm {
-        PSecurityRealm::new(self.id.as_str(), self.description.as_str())
+        PSecurityRealm::new(self.id.as_str(), self.description.clone())
     }
 
     /// Creates new instance of realm
-    pub fn new(id: &str, description: &str) -> SecurityRealm {
+    pub fn new(id: &str, description: Option<String>) -> SecurityRealm {
         SecurityRealm{
             id: id.to_string(),
-            description: description.to_string(),
-            resources: HashMap::new(),
-            claims: HashMap::new()
+            description: description.clone()
         }
     }
 }
@@ -52,20 +50,34 @@ impl std::fmt::Display for SecurityRealm {
 /// Organization represents org that principal users belong to
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Organization {
+    #[serde(skip_deserializing)]
     pub id: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub parent_id: Option<String>,
     pub name: String,
     pub url: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub description: Option<String>,
+    #[serde(skip_serializing, skip_deserializing)]
     pub groups: HashMap<String, Group>,
+    #[serde(skip_serializing, skip_deserializing)]
     pub roles: HashMap<String, Role>,
+    #[serde(skip_serializing, skip_deserializing)]
     pub claims: Vec<ClaimClaimable>,
+    #[serde(skip_serializing, skip_deserializing)]
     pub resources: Vec<Resource>,
+    #[serde(skip_serializing, skip_deserializing)]
     pub license_policy: Option<LicensePolicy>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(skip_deserializing)]
     pub created_by: Option<String>,
-    pub created_at: NaiveDateTime,
+    #[serde(skip_deserializing)]
+    pub created_at: Option<NaiveDateTime>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(skip_deserializing)]
     pub updated_by: Option<String>,
-    pub updated_at: NaiveDateTime,
+    #[serde(skip_deserializing)]
+    pub updated_at: Option<NaiveDateTime>,
 }
 
 impl std::fmt::Display for Organization {
@@ -122,9 +134,9 @@ impl Organization {
             claims: vec![],
             resources: vec![],
             license_policy: None,
-            created_at: Utc::now().naive_utc(),
+            created_at: Some(Utc::now().naive_utc()),
             created_by: None,
-            updated_at: Utc::now().naive_utc(),
+            updated_at: Some(Utc::now().naive_utc()),
             updated_by: None
         }
     }
@@ -133,18 +145,23 @@ impl Organization {
 /// Principal represents user of the organization and belongs to an organization
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Principal {
+    #[serde(skip_deserializing)]
     pub id: String,
     pub organization_id: String,
     pub username: String,
     pub description: Option<String>,
+    #[serde(skip_serializing, skip_deserializing)]
     pub groups: HashMap<String, Group>,
+    #[serde(skip_serializing, skip_deserializing)]
     pub roles: HashMap<String, Role>,
+    #[serde(skip_serializing, skip_deserializing)]
     pub claims: Vec<ClaimClaimable>,
+    #[serde(skip_serializing, skip_deserializing)]
     pub resources: Vec<Resource>,
     pub created_by: Option<String>,
-    pub created_at: NaiveDateTime,
+    pub created_at: Option<NaiveDateTime>,
     pub updated_by: Option<String>,
-    pub updated_at: NaiveDateTime,
+    pub updated_at: Option<NaiveDateTime>,
 }
 
 impl std::fmt::Display for Principal {
@@ -200,9 +217,9 @@ impl Principal {
             roles: HashMap::new(),
             claims: vec![],
             resources: vec![],
-            created_at: Utc::now().naive_utc(),
+            created_at: Some(Utc::now().naive_utc()),
             created_by: None,
-            updated_at: Utc::now().naive_utc(),
+            updated_at: Some(Utc::now().naive_utc()),
             updated_by: None
         }
     }
@@ -213,16 +230,18 @@ impl Principal {
 /// with multiple groups and each group can inherit from another group.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Group {
+    #[serde(skip_deserializing)]
     pub id: String,
     pub parent_id: Option<String>,
     pub organization_id: String,
     pub name: String,
     pub description: Option<String>,
+    #[serde(skip_serializing, skip_deserializing)]
     pub roles: HashMap<String, Role>,
     pub created_by: Option<String>,
-    pub created_at: NaiveDateTime,
+    pub created_at: Option<NaiveDateTime>,
     pub updated_by: Option<String>,
-    pub updated_at: NaiveDateTime,
+    pub updated_at: Option<NaiveDateTime>,
 }
 
 impl std::fmt::Display for Group {
@@ -265,9 +284,9 @@ impl Group {
             name: name.to_string(),
             description: description,
             roles: HashMap::new(),
-            created_at: Utc::now().naive_utc(),
+            created_at: Some(Utc::now().naive_utc()),
             created_by: None,
-            updated_at: Utc::now().naive_utc(),
+            updated_at: Some(Utc::now().naive_utc()),
             updated_by: None
         }
     }
@@ -276,17 +295,20 @@ impl Group {
 /// Resource represents target object that needs to be secured within a security realm
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Resource {
+    #[serde(skip_deserializing)]
     pub id: String,
     pub realm_id: String,
     pub resource_name: String,
     pub description: Option<String>,
     pub allowable_actions: Option<String>,
+    #[serde(skip_serializing, skip_deserializing)]
     pub instances: HashMap<String, ResourceInstance>,
+    #[serde(skip_serializing, skip_deserializing)]
     pub quotas: HashMap<String, ResourceQuota>,
     pub created_by: Option<String>,
-    pub created_at: NaiveDateTime,
+    pub created_at: Option<NaiveDateTime>,
     pub updated_by: Option<String>,
-    pub updated_at: NaiveDateTime,
+    pub updated_at: Option<NaiveDateTime>,
 }
 
 impl std::fmt::Display for Resource {
@@ -327,9 +349,9 @@ impl Resource {
             allowable_actions: allowable_actions,
             instances: HashMap::new(),
             quotas: HashMap::new(),
-            created_at: Utc::now().naive_utc(),
+            created_at: Some(Utc::now().naive_utc()),
             created_by: None,
-            updated_at: Utc::now().naive_utc(),
+            updated_at: Some(Utc::now().naive_utc()),
             updated_by: None
         }
     }
@@ -338,17 +360,20 @@ impl Resource {
 /// ResourceInstance represents an instance of target object in case number of objects need constraints
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct ResourceInstance {
+    #[serde(skip_deserializing)]
     pub id: String,
+    #[serde(skip_deserializing)]
     pub resource_id: String,
+    #[serde(skip_deserializing)]
     pub license_policy_id: String,
     pub scope: String,
     pub ref_id: String,
     pub status: String,
     pub description: Option<String>,
     pub created_by: Option<String>,
-    pub created_at: NaiveDateTime,
+    pub created_at: Option<NaiveDateTime>,
     pub updated_by: Option<String>,
-    pub updated_at: NaiveDateTime,
+    pub updated_at: Option<NaiveDateTime>,
 }
 
 impl ResourceInstance {
@@ -383,9 +408,9 @@ impl ResourceInstance {
             ref_id: ref_id.to_string(),
             status: status.to_string(),
             description: description,
-            created_at: Utc::now().naive_utc(),
+            created_at: Some(Utc::now().naive_utc()),
             created_by: None,
-            updated_at: Utc::now().naive_utc(),
+            updated_at: Some(Utc::now().naive_utc()),
             updated_by: None
         }
     }
@@ -394,17 +419,20 @@ impl ResourceInstance {
 /// ResourceQuota represents max quota for number of instances of target object
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct ResourceQuota {
+    #[serde(skip_deserializing)]
     pub id: String,
+    #[serde(skip_deserializing)]
     pub resource_id: String,
     pub scope: String,
+    #[serde(skip_deserializing)]
     pub license_policy_id: String,
     pub max_value: i32,
     pub effective_at: NaiveDateTime,
     pub expired_at: NaiveDateTime,
     pub created_by: Option<String>,
-    pub created_at: NaiveDateTime,
+    pub created_at: Option<NaiveDateTime>,
     pub updated_by: Option<String>,
-    pub updated_at: NaiveDateTime,
+    pub updated_at: Option<NaiveDateTime>,
 }
 
 impl ResourceQuota {
@@ -439,9 +467,9 @@ impl ResourceQuota {
             max_value: max_value,
             effective_at: effective_at,
             expired_at: expired_at,
-            created_at: Utc::now().naive_utc(),
+            created_at: Some(Utc::now().naive_utc()),
             created_by: None,
-            updated_at: Utc::now().naive_utc(),
+            updated_at: Some(Utc::now().naive_utc()),
             updated_by: None
         }
     }
@@ -457,18 +485,20 @@ pub enum RoleRoleable {
 /// Role defines abstraction for defining claims/capabilities/permissions to a group of users
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Role {
+    #[serde(skip_deserializing)]
     pub id: String,
     pub parent_id: Option<String>,
     pub realm_id: String,
     pub organization_id: String,
     pub name: String,
     pub description: Option<String>,
+    #[serde(skip_serializing, skip_deserializing)]
     pub claims: Vec<ClaimClaimable>,    // All claims mapped to role
-    pub constraints: String,
+    pub constraints: Option<String>,
     pub created_by: Option<String>,
-    pub created_at: NaiveDateTime,
+    pub created_at: Option<NaiveDateTime>,
     pub updated_by: Option<String>,
-    pub updated_at: NaiveDateTime,
+    pub updated_at: Option<NaiveDateTime>,
 }
 
 impl std::fmt::Display for Role {
@@ -492,7 +522,7 @@ impl Role {
             name: role.name.clone(),
             description: role.description.clone(),
             claims: vec![],
-            constraints: "".to_string(),
+            constraints: None,
             created_at: role.created_at.clone(),
             created_by: role.created_by.clone(),
             updated_at: role.updated_at.clone(),
@@ -514,10 +544,10 @@ impl Role {
             name: name.to_string(),
             description: description,
             claims: vec![],
-            constraints: "".to_string(),
-            created_at: Utc::now().naive_utc(),
+            constraints: None,
+            created_at: Some(Utc::now().naive_utc()),
             created_by: None,
-            updated_at: Utc::now().naive_utc(),
+            updated_at: Some(Utc::now().naive_utc()),
             updated_by: None
         }
     }
@@ -562,16 +592,18 @@ impl ClaimResource {
 /// on those resources.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Claim {
+    #[serde(skip_deserializing)]
     pub id: String,
     pub realm_id: String,
+    #[serde(skip_deserializing)]
     pub resource_id: String,
     pub action: String,
-    pub effect: String,
+    pub effect: Option<String>,
     pub description: Option<String>,
     pub created_by: Option<String>,
-    pub created_at: NaiveDateTime,
+    pub created_at: Option<NaiveDateTime>,
     pub updated_by: Option<String>,
-    pub updated_at: NaiveDateTime,
+    pub updated_at: Option<NaiveDateTime>,
 }
 
 impl std::fmt::Display for Claim {
@@ -599,7 +631,7 @@ impl Claim {
 
     /// Creates instance of persistent claim
     pub fn to(&self) -> PClaim {
-        PClaim::new(self.id.as_str(), self.realm_id.as_str(), self.resource_id.as_str(), self.action.as_str(), self.effect.as_str(), self.description.clone())
+        PClaim::new(self.id.as_str(), self.realm_id.as_str(), self.resource_id.as_str(), self.action.as_str(), self.effect().as_str(), self.description.clone())
     }
 
     pub fn new(id: &str, realm_id: &str, resource_id: &str, action: &str, effect: &str, description: Option<String>) -> Claim {
@@ -608,30 +640,41 @@ impl Claim {
             realm_id: realm_id.to_string(),
             resource_id: resource_id.to_string(),
             action: action.to_string(),
-            effect: effect.to_string(),
+            effect: Some(effect.to_string()),
             description: description,
-            created_at: Utc::now().naive_utc(),
+            created_at: Some(Utc::now().naive_utc()),
             created_by: None,
-            updated_at: Utc::now().naive_utc(),
+            updated_at: Some(Utc::now().naive_utc()),
             updated_by: None
         }
+    }
+
+    pub fn effect(&self) -> String {
+        if let Some(effect) = self.effect.clone() {
+            if effect.len() > 0 {
+                return effect;
+            }
+        }
+        Constants::Allow.to_string()
     }
 }
 
 /// LicensePolicy defines what an organization can access
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct LicensePolicy {
+    #[serde(skip_deserializing)]
     pub id: String,
     pub organization_id: String,
     pub name: String,
     pub description: Option<String>,
     pub effective_at: NaiveDateTime,
     pub expired_at: NaiveDateTime,
+    #[serde(skip_serializing, skip_deserializing)]
     pub claims: Vec<ClaimClaimable>,    // All claims mapped to organization via license policy
     pub created_by: Option<String>,
-    pub created_at: NaiveDateTime,
+    pub created_at: Option<NaiveDateTime>,
     pub updated_by: Option<String>,
-    pub updated_at: NaiveDateTime,
+    pub updated_at: Option<NaiveDateTime>,
 }
 
 impl LicensePolicy {
@@ -666,14 +709,13 @@ impl LicensePolicy {
             effective_at: effective_at,
             expired_at: expired_at,
             claims: vec![],
-            created_at: Utc::now().naive_utc(),
+            created_at: Some(Utc::now().naive_utc()),
             created_by: None,
-            updated_at: Utc::now().naive_utc(),
+            updated_at: Some(Utc::now().naive_utc()),
             updated_by: None
         }
     }
 }
-
 
 #[cfg(test)]
 mod tests {
@@ -684,7 +726,7 @@ mod tests {
 
     #[test]
     fn test_create_realm() {
-        let r = SecurityRealm::new("test", "");
+        let r = SecurityRealm::new("test", None);
         assert_eq!("test", r.id);
     }
 

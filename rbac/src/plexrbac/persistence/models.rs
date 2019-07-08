@@ -18,21 +18,21 @@ use super::schema::*;
 #[table_name = "rbac_realms"]
 pub struct PSecurityRealm {
     pub id: String,
-    pub description: String,
+    pub description: Option<String>,
     pub created_by: Option<String>,
-    pub created_at: NaiveDateTime,
+    pub created_at: Option<NaiveDateTime>,
     pub updated_by: Option<String>,
-    pub updated_at: NaiveDateTime,
+    pub updated_at: Option<NaiveDateTime>,
 }
 
 impl PSecurityRealm {
-    pub fn new(id: &str, description: &str) -> PSecurityRealm {
+    pub fn new(id: &str, description: Option<String>) -> PSecurityRealm {
         PSecurityRealm{
             id: id.to_string(),
-            description: description.to_string(),
-            created_at: Utc::now().naive_utc(),
+            description: description.clone(),
+            created_at: Some(Utc::now().naive_utc()),
             created_by: None,
-            updated_at: Utc::now().naive_utc(),
+            updated_at: Some(Utc::now().naive_utc()),
             updated_by: None
         }
     }
@@ -48,9 +48,9 @@ pub struct POrganization {
     pub url: String,
     pub description: Option<String>,
     pub created_by: Option<String>,
-    pub created_at: NaiveDateTime,
+    pub created_at: Option<NaiveDateTime>,
     pub updated_by: Option<String>,
-    pub updated_at: NaiveDateTime,
+    pub updated_at: Option<NaiveDateTime>,
 }
 
 impl POrganization {
@@ -61,9 +61,9 @@ impl POrganization {
             name: name.to_string(),
             url: url.to_string(),
             description: description,
-            created_at: Utc::now().naive_utc(),
+            created_at: Some(Utc::now().naive_utc()),
             created_by: None,
-            updated_at: Utc::now().naive_utc(),
+            updated_at: Some(Utc::now().naive_utc()),
             updated_by: None
         }
     }
@@ -79,9 +79,9 @@ pub struct PPrincipal {
     pub username: String,
     pub description: Option<String>,
     pub created_by: Option<String>,
-    pub created_at: NaiveDateTime,
+    pub created_at: Option<NaiveDateTime>,
     pub updated_by: Option<String>,
-    pub updated_at: NaiveDateTime,
+    pub updated_at: Option<NaiveDateTime>,
 }
 
 impl PPrincipal {
@@ -91,9 +91,9 @@ impl PPrincipal {
             username: username.to_string(),
             organization_id: organization_id.to_string(),
             description: description,
-            created_at: Utc::now().naive_utc(),
+            created_at: Some(Utc::now().naive_utc()),
             created_by: None,
-            updated_at: Utc::now().naive_utc(),
+            updated_at: Some(Utc::now().naive_utc()),
             updated_by: None
         }
     }
@@ -112,9 +112,9 @@ pub struct PGroup {
     pub name: String,
     pub description: Option<String>,
     pub created_by: Option<String>,
-    pub created_at: NaiveDateTime,
+    pub created_at: Option<NaiveDateTime>,
     pub updated_by: Option<String>,
-    pub updated_at: NaiveDateTime,
+    pub updated_at: Option<NaiveDateTime>,
 }
 
 impl PGroup {
@@ -125,9 +125,9 @@ impl PGroup {
             organization_id: organization_id.to_string(),
             name: name.to_string(),
             description: description,
-            created_at: Utc::now().naive_utc(),
+            created_at: Some(Utc::now().naive_utc()),
             created_by: None,
-            updated_at: Utc::now().naive_utc(),
+            updated_at: Some(Utc::now().naive_utc()),
             updated_by: None
         }
     }
@@ -143,9 +143,9 @@ pub struct PGroupPrincipal {
     pub group_id: String,
     pub principal_id: String,
     pub created_by: Option<String>,
-    pub created_at: NaiveDateTime,
+    pub created_at: Option<NaiveDateTime>,
     pub updated_by: Option<String>,
-    pub updated_at: NaiveDateTime,
+    pub updated_at: Option<NaiveDateTime>,
 }
 
 impl PGroupPrincipal {
@@ -153,9 +153,9 @@ impl PGroupPrincipal {
         PGroupPrincipal {
             group_id: group_id.to_string(),
             principal_id: principal_id.to_string(),
-            created_at: Utc::now().naive_utc(),
+            created_at: Some(Utc::now().naive_utc()),
             created_by: None,
-            updated_at: Utc::now().naive_utc(),
+            updated_at: Some(Utc::now().naive_utc()),
             updated_by: None
         }
     }
@@ -172,9 +172,9 @@ pub struct PResource {
     pub description: Option<String>,
     pub allowable_actions: Option<String>,
     pub created_by: Option<String>,
-    pub created_at: NaiveDateTime,
+    pub created_at: Option<NaiveDateTime>,
     pub updated_by: Option<String>,
-    pub updated_at: NaiveDateTime,
+    pub updated_at: Option<NaiveDateTime>,
 }
 
 impl PResource {
@@ -185,9 +185,9 @@ impl PResource {
             resource_name: resource_name.to_string(),
             description: description,
             allowable_actions: allowable_actions,
-            created_at: Utc::now().naive_utc(),
+            created_at: Some(Utc::now().naive_utc()),
             created_by: None,
-            updated_at: Utc::now().naive_utc(),
+            updated_at: Some(Utc::now().naive_utc()),
             updated_by: None
         }
     }
@@ -206,9 +206,9 @@ pub struct PResourceInstance {
     pub status: String,
     pub description: Option<String>,
     pub created_by: Option<String>,
-    pub created_at: NaiveDateTime,
+    pub created_at: Option<NaiveDateTime>,
     pub updated_by: Option<String>,
-    pub updated_at: NaiveDateTime,
+    pub updated_at: Option<NaiveDateTime>,
 }
 
 impl PResourceInstance {
@@ -221,9 +221,9 @@ impl PResourceInstance {
             ref_id: ref_id.to_string(),
             status: status.to_string(),
             description: description,
-            created_at: Utc::now().naive_utc(),
+            created_at: Some(Utc::now().naive_utc()),
             created_by: None,
-            updated_at: Utc::now().naive_utc(),
+            updated_at: Some(Utc::now().naive_utc()),
             updated_by: None
         }
     }
@@ -243,9 +243,9 @@ pub struct PResourceQuota {
     pub effective_at: NaiveDateTime,
     pub expired_at: NaiveDateTime,
     pub created_by: Option<String>,
-    pub created_at: NaiveDateTime,
+    pub created_at: Option<NaiveDateTime>,
     pub updated_by: Option<String>,
-    pub updated_at: NaiveDateTime,
+    pub updated_at: Option<NaiveDateTime>,
 }
 
 impl PResourceQuota {
@@ -258,9 +258,9 @@ impl PResourceQuota {
             max_value: max_value,
             effective_at: effective_at,
             expired_at: expired_at,
-            created_at: Utc::now().naive_utc(),
+            created_at: Some(Utc::now().naive_utc()),
             created_by: None,
-            updated_at: Utc::now().naive_utc(),
+            updated_at: Some(Utc::now().naive_utc()),
             updated_by: None
         }
     }
@@ -280,9 +280,9 @@ pub struct PRole {
     pub name: String,
     pub description: Option<String>,
     pub created_by: Option<String>,
-    pub created_at: NaiveDateTime,
+    pub created_at: Option<NaiveDateTime>,
     pub updated_by: Option<String>,
-    pub updated_at: NaiveDateTime,
+    pub updated_at: Option<NaiveDateTime>,
 }
 
 impl PRole {
@@ -294,9 +294,9 @@ impl PRole {
             realm_id: realm_id.to_string(),
             name: name.to_string(),
             description: description,
-            created_at: Utc::now().naive_utc(),
+            created_at: Some(Utc::now().naive_utc()),
             created_by: None,
-            updated_at: Utc::now().naive_utc(),
+            updated_at: Some(Utc::now().naive_utc()),
             updated_by: None
         }
     }
@@ -311,13 +311,13 @@ pub struct PRoleRoleable {
     pub role_id: String,
     pub roleable_id: String,
     pub roleable_type: String,
-    pub role_constraints: String,
+    pub role_constraints: Option<String>,
     pub effective_at: NaiveDateTime,
     pub expired_at: NaiveDateTime,
     pub created_by: Option<String>,
-    pub created_at: NaiveDateTime,
+    pub created_at: Option<NaiveDateTime>,
     pub updated_by: Option<String>,
-    pub updated_at: NaiveDateTime,
+    pub updated_at: Option<NaiveDateTime>,
 }
 
 impl PRoleRoleable {
@@ -326,14 +326,18 @@ impl PRoleRoleable {
             role_id: role_id.to_string(),
             roleable_id: roleable_id.to_string(),
             roleable_type: roleable_type.to_string(),
-            role_constraints: role_constraints.to_string(),
+            role_constraints: Some(role_constraints.to_string()),
             effective_at: effective_at,
             expired_at: expired_at,
-            created_at: Utc::now().naive_utc(),
+            created_at: Some(Utc::now().naive_utc()),
             created_by: None,
-            updated_at: Utc::now().naive_utc(),
+            updated_at: Some(Utc::now().naive_utc()),
             updated_by: None
         }
+    }
+
+    pub fn role_constraints(&self) -> String {
+        self.role_constraints.clone().unwrap_or_else(||"".to_string())
     }
 }
 
@@ -347,12 +351,12 @@ pub struct PClaim {
     pub realm_id: String,
     pub resource_id: String,
     pub action: String,
-    pub effect: String,
+    pub effect: Option<String>,
     pub description: Option<String>,
     pub created_by: Option<String>,
-    pub created_at: NaiveDateTime,
+    pub created_at: Option<NaiveDateTime>,
     pub updated_by: Option<String>,
-    pub updated_at: NaiveDateTime,
+    pub updated_at: Option<NaiveDateTime>,
 }
 
 impl PClaim {
@@ -362,11 +366,11 @@ impl PClaim {
             realm_id: realm_id.to_string(),
             resource_id: resource_id.to_string(),
             action: action.to_string(),
-            effect: effect.to_string(),
+            effect: Some(effect.to_string()),
             description: description,
-            created_at: Utc::now().naive_utc(),
+            created_at: Some(Utc::now().naive_utc()),
             created_by: None,
-            updated_at: Utc::now().naive_utc(),
+            updated_at: Some(Utc::now().naive_utc()),
             updated_by: None
         }
     }
@@ -381,13 +385,13 @@ pub struct PClaimClaimable {
     pub claimable_id: String,
     pub claimable_type: String,
     pub scope: String,
-    pub claim_constraints: String,
+    pub claim_constraints: Option<String>,
     pub effective_at: NaiveDateTime,
     pub expired_at: NaiveDateTime,
     pub created_by: Option<String>,
-    pub created_at: NaiveDateTime,
+    pub created_at: Option<NaiveDateTime>,
     pub updated_by: Option<String>,
-    pub updated_at: NaiveDateTime,
+    pub updated_at: Option<NaiveDateTime>,
 }
 
 impl PClaimClaimable {
@@ -397,15 +401,20 @@ impl PClaimClaimable {
             claimable_id: claimable_id.to_string(),
             claimable_type: claimable_type.to_string(),
             scope: scope.to_string(),
-            claim_constraints: claim_constraints.to_string(),
+            claim_constraints: Some(claim_constraints.to_string()),
             effective_at: effective_at,
             expired_at: expired_at,
-            created_at: Utc::now().naive_utc(),
+            created_at: Some(Utc::now().naive_utc()),
             created_by: None,
-            updated_at: Utc::now().naive_utc(),
+            updated_at: Some(Utc::now().naive_utc()),
             updated_by: None
         }
     }
+
+    pub fn claim_constraints(&self) -> String {
+        self.claim_constraints.clone().unwrap_or_else(||"".to_string())
+    }
+
 }
 
 /// PAuditRecord stores a log for any action on RBAC system.
@@ -417,7 +426,7 @@ pub struct PAuditRecord {
     pub action: Option<String>,
     pub context: Option<String>,
     pub created_by: Option<String>,
-    pub created_at: NaiveDateTime,
+    pub created_at: Option<NaiveDateTime>,
 }
 
 impl PAuditRecord {
@@ -427,7 +436,7 @@ impl PAuditRecord {
             message: message.to_string(),
             action: action,
             context: context,
-            created_at: Utc::now().naive_utc(),
+            created_at: Some(Utc::now().naive_utc()),
             created_by: None,
         }
     }
@@ -445,9 +454,9 @@ pub struct PLicensePolicy {
     pub effective_at: NaiveDateTime,
     pub expired_at: NaiveDateTime,
     pub created_by: Option<String>,
-    pub created_at: NaiveDateTime,
+    pub created_at: Option<NaiveDateTime>,
     pub updated_by: Option<String>,
-    pub updated_at: NaiveDateTime,
+    pub updated_at: Option<NaiveDateTime>,
 }
 
 impl PLicensePolicy {
@@ -459,9 +468,9 @@ impl PLicensePolicy {
             description: description,
             effective_at: effective_at,
             expired_at: expired_at,
-            created_at: Utc::now().naive_utc(),
+            created_at: Some(Utc::now().naive_utc()),
             created_by: None,
-            updated_at: Utc::now().naive_utc(),
+            updated_at: Some(Utc::now().naive_utc()),
             updated_by: None
         }
     }
@@ -475,7 +484,7 @@ mod tests {
 
     #[test]
     fn test_create_realm() {
-        let r = PSecurityRealm::new("test", "");
+        let r = PSecurityRealm::new("test", None);
         assert_eq!("test", r.id);
     }
 

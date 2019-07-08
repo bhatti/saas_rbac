@@ -1,6 +1,7 @@
 pub mod models;
 pub mod schema;
-pub mod factory;
+pub mod data_source;
+pub mod locator;
 pub mod realm_repository;
 pub mod org_repository;
 pub mod group_repository;

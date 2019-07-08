@@ -1,11 +1,6 @@
-mod domain;
-mod security;
-mod persistence;
+pub mod domain;
+pub mod security;
+pub mod persistence;
+pub mod service;
 mod utils;
 mod common;
-
-pub fn top() {
-    let factory = persistence::factory::RepositoryFactory::new();
-    let repo = factory.new_realm_repository();
-    repo.clear();
-}
