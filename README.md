@@ -774,88 +774,97 @@ cargo run
 Following are major APIs:
 
 ### Realms
-   Query realms: GET /api/realms
-   Create realm: POST /api/realms
-   Update realm: PUT /api/realms/<id>
-   Find realm: GET /api/realms/<id>
-   Delete realm: DELETE /api/realms/<id>
+
+   * Query realms: GET /api/realms
+   * Create realm: POST /api/realms
+   * Update realm: PUT /api/realms/<id>
+   * Find realm: GET /api/realms/<id>
+   * Delete realm: DELETE /api/realms/<id>
 
 ### Resources
-   Query resources: GET /api/realms/<realm_id>/resources
-   Create resource: POST /api/realms/<realm_id>/resources
-   Update resource: PUT /api/realms/<realm_id>/resources/<id>
-   Find resource: GET /api/realms/<realm_id>/resources/<id>
-   Delete resource: DELETE /api/realms/<realm_id>/resources/<id>
+
+   * Query resources: GET /api/realms/<realm_id>/resources
+   * Create resource: POST /api/realms/<realm_id>/resources
+   * Update resource: PUT /api/realms/<realm_id>/resources/<id>
+   * Find resource: GET /api/realms/<realm_id>/resources/<id>
+   * Delete resource: DELETE /api/realms/<realm_id>/resources/<id>
 
 ### Resource Quota
-   Query quota: GET /api/realms/<realm_id>/resources/<resource_id>/quota
-   Create quota: POST /api/realms/<realm_id>/resources/<resource_id>/quota
-   Update quota: PUT /api/realms/<realm_id>/resources/<resource_id>/quota/<id>
-   Find quota: GET /api/realms/<realm_id>/resources/<resource_id>/quota/<id>
-   Delete quota: DELETE /api/realms/<realm_id>/resources/<resource_id>/quota/<id>
+
+   * Query quota: GET /api/realms/<realm_id>/resources/<resource_id>/quota
+   * Create quota: POST /api/realms/<realm_id>/resources/<resource_id>/quota
+   * Update quota: PUT /api/realms/<realm_id>/resources/<resource_id>/quota/<id>
+   * Find quota: GET /api/realms/<realm_id>/resources/<resource_id>/quota/<id>
+   * Delete quota: DELETE /api/realms/<realm_id>/resources/<resource_id>/quota/<id>
 
 ### Resource Instances
-   Query instances: GET /api/realms/<realm_id>/resources/<resource_id>/instances
-   Create resource instance: POST /api/realms/<realm_id>/resources/<resource_id>/instances
-   Update resource instance: PUT /api/realms/<realm_id>/resources/<resource_id>/instances/<id>
-   Find resource instance: GET /api/realms/<realm_id>/resources/<resource_id>/instances/<id>
-   Delete resource instance: DELETE /api/realms/<realm_id>/resources/<resource_id>/instances/<id>
+
+   * Query instances: GET /api/realms/<realm_id>/resources/<resource_id>/instances
+   * Create resource instance: POST /api/realms/<realm_id>/resources/<resource_id>/instances
+   * Update resource instance: PUT /api/realms/<realm_id>/resources/<resource_id>/instances/<id>
+   * Find resource instance: GET /api/realms/<realm_id>/resources/<resource_id>/instances/<id>
+   * Delete resource instance: DELETE /api/realms/<realm_id>/resources/<resource_id>/instances/<id>
 
 ### Claims
-   Query claims within realm: GET /api/realms/<realm_id>/claims
-   Query claims within resource: GET /api/realms/<realm_id>/resources/<resource_id>/claims
-   Create claim: POST /api/realms/<realm_id>/resources/<resource_id>/claims
-   Update claim: PUT /api/realms/<realm_id>/resources/<resource_id>/claims/<id>
-   Find claim: GET /api/realms/<realm_id>/resources/<resource_id>/claims/<id>
-   Delete claim: DELETE /api/realms/<realm_id>/resources/<resource_id>/claims/<id>
- 
-   Add principal to claim: PUT /api/realms/<realm_id>/resources/<resource_id>/claims/<claim_id>/principals/<principal_id>
-   Delete principal from claim: DELETE /api/realms/<realm_id>/resources/<resource_id>/claims/<claim_id>/principals/<principal_id>
-   Add role to claim: PUT /api/realms/<realm_id>/resources/<resource_id>/claims/<claim_id>/roles/<role_id>
-   Delete role from claim: DELETE /api/realms/<realm_id>/resources/<resource_id>/claims/<claim_id>/roles/<role_id>
-   Add claim to license policy: PUT /api/realms/<realm_id>/resources/<resource_id>/claims/<claim_id>/licenses/<license_policy_id>
-   Remove claim from license policy: DELETE /api/realms/<realm_id>/resources/<resource_id>/claims/<claim_id>/licenses/<license_policy_id>
+
+   * Query claims within realm: GET /api/realms/<realm_id>/claims
+   * Query claims within resource: GET /api/realms/<realm_id>/resources/<resource_id>/claims
+   * Create claim: POST /api/realms/<realm_id>/resources/<resource_id>/claims
+   * Update claim: PUT /api/realms/<realm_id>/resources/<resource_id>/claims/<id>
+   * Find claim: GET /api/realms/<realm_id>/resources/<resource_id>/claims/<id>
+   * Delete claim: DELETE /api/realms/<realm_id>/resources/<resource_id>/claims/<id>
+   * Add principal to claim: PUT /api/realms/<realm_id>/resources/<resource_id>/claims/<claim_id>/principals/<principal_id>
+   * Delete principal from claim: DELETE /api/realms/<realm_id>/resources/<resource_id>/claims/<claim_id>/principals/<principal_id>
+   **  Add role to claim: PUT /api/realms/<realm_id>/resources/<resource_id>/claims/<claim_id>/roles/<role_id>
+   * Delete role from claim: DELETE /api/realms/<realm_id>/resources/<resource_id>/claims/<claim_id>/roles/<role_id>
+   * Add claim to license policy: PUT /api/realms/<realm_id>/resources/<resource_id>/claims/<claim_id>/licenses/<license_policy_id>
+   * Remove claim from license policy: DELETE /api/realms/<realm_id>/resources/<resource_id>/claims/<claim_id>/licenses/<license_policy_id>
 
 ### Organizations
-  Query all organizations: GET /api/orgs
-  Create organization: POST /api/orgs
-  Update organization: PUT /api/orgs/<id>
-  Find organization: GET /api/orgs/<id>
-  Delete organization: DELETE /api/orgs/<id>
+
+  * Query all organizations: GET /api/orgs
+  * Create organization: POST /api/orgs
+  * Update organization: PUT /api/orgs/<id>
+  * Find organization: GET /api/orgs/<id>
+  * Delete organization: DELETE /api/orgs/<id>
 
 ### Groups
-  Query all groups: GET /api/orgs/<org_id>/groups
-  Create group: POST /api/orgs/<org_id>/groups
-  Update group: PUT /api/orgs/<org_id>/groups/<id>
-  Find group: GET /api/orgs/<org_id>/groups/<id>
-  Delete group: DELETE /api/orgs/<org_id>/groups/<id>
-  Add principal to group: PUT /api/orgs/<org_id>/groups/<group_id>/principals/<principal_id>
-  Remove principal from group: DELETE /api/orgs/<org_id>/groups/<group_id>/principals/<principal_id>
+
+  * Query all groups: GET /api/orgs/<org_id>/groups
+  * Create group: POST /api/orgs/<org_id>/groups
+  * Update group: PUT /api/orgs/<org_id>/groups/<id>
+  * Find group: GET /api/orgs/<org_id>/groups/<id>
+  * Delete group: DELETE /api/orgs/<org_id>/groups/<id>
+  * Add principal to group: PUT /api/orgs/<org_id>/groups/<group_id>/principals/<principal_id>
+  * Remove principal from group: DELETE /api/orgs/<org_id>/groups/<group_id>/principals/<principal_id>
 
 ### Roles
-    Query all roles: GET /api/orgs/<org_id>/roles
-    Create role: POST /api/orgs/<org_id>/roles
-    Update role: PUT /api/orgs/<org_id>/roles/<id>
-    Find role: GET /api/orgs/<org_id>/roles/<id>
-    Delete role: DELETE /api/orgs/<org_id>/roles/<id>
-    Add principal to role: PUT /api/orgs/<org_id>/roles/<role_id>/principals/<principal_id>
-    Remove principal from role: DELETE /api/orgs/<org_id>/roles/<role_id>/principals/<principal_id>
-    Add group to role: PUT /api/orgs/<org_id>/roles/<role_id>/groups/<group_id>
-    Remove group from role: DELETE /api/orgs/<org_id>/roles/<role_id>/groups/<group_id>
+
+    * Query all roles: GET /api/orgs/<org_id>/roles
+    * Create role: POST /api/orgs/<org_id>/roles
+    * Update role: PUT /api/orgs/<org_id>/roles/<id>
+    * Find role: GET /api/orgs/<org_id>/roles/<id>
+    * Delete role: DELETE /api/orgs/<org_id>/roles/<id>
+    * Add principal to role: PUT /api/orgs/<org_id>/roles/<role_id>/principals/<principal_id>
+    * Remove principal from role: DELETE /api/orgs/<org_id>/roles/<role_id>/principals/<principal_id>
+    * Add group to role: PUT /api/orgs/<org_id>/roles/<role_id>/groups/<group_id>
+    * Remove group from role: DELETE /api/orgs/<org_id>/roles/<role_id>/groups/<group_id>
 
 ### Principals
-    Query all principals: GET /api/orgs/<org_id>/principals
-    Create principal: POST /api/orgs/<org_id>/principals
-    Update principal: PUT /api/orgs/<org_id>/principals/<id>
-    Find principal: GET /api/orgs/<org_id>/principals/<id>
-    Delete principal: DELETE /api/orgs/<org_id>/principals/<id>
+
+    * Query all principals: GET /api/orgs/<org_id>/principals
+    * Create principal: POST /api/orgs/<org_id>/principals
+    * Update principal: PUT /api/orgs/<org_id>/principals/<id>
+    * Find principal: GET /api/orgs/<org_id>/principals/<id>
+    * Delete principal: DELETE /api/orgs/<org_id>/principals/<id>
 
 ### License Polcies
-    Query license policies: GET /api/orgs/<org_id>/licenses
-    Create license policy: POST /api/orgs/<org_id>/licenses
-    Update license policy: PUT /api/orgs/<org_id>/licenses/<id>
-    Find license policy: GET /api/orgs/<org_id>/licenses/<id>
-    Delete license policy: DELETE /api/orgs/<org_id>/licenses/<id>
+
+    * Query license policies: GET /api/orgs/<org_id>/licenses
+    * Create license policy: POST /api/orgs/<org_id>/licenses
+    * Update license policy: PUT /api/orgs/<org_id>/licenses/<id>
+    * Find license policy: GET /api/orgs/<org_id>/licenses/<id>
+    * Delete license policy: DELETE /api/orgs/<org_id>/licenses/<id>
 
 
 
