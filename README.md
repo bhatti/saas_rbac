@@ -603,6 +603,74 @@ Matt should be able to view advanced report
 let req = PermissionRequest::new(realm.id.as_str(), money_matt.id.as_str(), ActionType::VIEW, "Feature", "UI::Flag::AdvancedReport");
 assert_eq!(PermissionResponse::Allow, sm.check(&req)?);
 ```
+### Using Data Access
+Creating security realm
+```rust
+let realm = mgr.new_realm_with(&ctx, "dada").unwrap();
+```
+Creating organization
+```rust
+let org = mgr.new_org_with(&ctx, "dada").unwrap();
+```
+
+Creating Users
+```rust
+let tom = mgr.new_principal_with(&ctx, &org, "tom").unwrap();
+let mike = mgr.new_principal_with(&ctx, &org, "mike").unwrap();
+```
+
+Creating Roles
+```rust
+let customer = mgr.new_role_with(&ctx, &realm, &org, "Customer").unwrap();
+let beta_customer = mgr.new_role_with_parent(&ctx, &realm, &org, &customer, "BetaCustomer").unwrap();
+```
+
+Creating Resources
+```rust
+let data = mgr.new_resource_with(&ctx, &realm, "Data").unwrap();
+```
+
+Creating claims for resources
+```rust
+let view = mgr.new_claim_with(&ctx, &realm, &data, "VIEW").unwrap();
+```
+
+Mapping Principals and Claims to Roles
+```rust
+mgr.map_principal_to_role(&ctx, &tom, &customer);
+mgr.map_principal_to_role(&ctx, &mike, &beta_customer);
+```
+
+Map claims to roles as follows:
+```rust
+mgr.map_role_to_claim(&ctx, &customer, &view, "Report::Summary", "");
+mgr.map_role_to_claim(&ctx, &beta_customer, &view, "Report::Details", "");
+```
+
+
+Tom should be able to view summary
+```rust
+let security_mgr = SecurityManager::new(mgr);
+let mut req = PermissionRequest::new(realm.id.as_str(), tom.id.as_str(), ActionType::VIEW, "Data", "Report::Summary");
+if PermissionResponse::Allow == security_mgr.check(&req)? {
+    // add summary data
+}
+```
+
+Tom should not be able to view details
+```rust
+let mut req = PermissionRequest::new(realm.id.as_str(), tom.id.as_str(), ActionType::VIEW, "Data", "Report::Details");
+assert!(security_mgr.check(&req).is_err());
+```
+
+Mike should be able to view details
+```rust
+let mut req = PermissionRequest::new(realm.id.as_str(), mike.id.as_str(), ActionType::VIEW, "Data", "Report::Details");
+if PermissionResponse::Allow == security_mgr.check(&req)? {
+    // add details data
+}
+```
+
 ### Using Multiple teams for roles
 Create license policies
 ```rust
