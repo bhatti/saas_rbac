@@ -64,7 +64,7 @@ The constraints contains a logical expressions and provides access to runtime re
 
 The license policy represents a set of claims that an organization can access based on pricing or license model.
 
-*** Note ***: The resources and claims are defined by the Saas provider and then sign up process defines organization and license-policy. The organization then creates principals/roles and associates claims with roles/principals. All claims set by the organization would be subset of license policy and time bound within the range of license policy.
+***Note***: The resources and claims are defined by the Saas provider and then sign up process defines organization and license-policy. The organization then creates principals/roles and associates claims with roles/principals. All claims set by the organization would be subset of license policy and time bound within the range of license policy.
 
 ## System Layers
 
@@ -74,31 +74,31 @@ SaasRRBAC consists of following layers
 
 This layer defines core classes that are part of the RBAC based security realm such as:
 
- * Realm – - The realm allows you to support multiple applications or security realms.
- * Organization – The organization represents the organization that customer belongs to, each customer
+  * Realm – - The realm allows you to support multiple applications or security realms.
+  * Organization – The organization represents the organization that customer belongs to, each customer
     may belong to different organizations.
- * Principal – The principal represents an identity of users that belong to customer organizations. Note,
+  * Principal – The principal represents an identity of users that belong to customer organizations. Note,
     this object represents employees/users of customers and not users of hosting provider, though they can
     be modeled in similar fashion.
- * LicensePolicy – The license policy represents overall access for the customers and it's mapped to claims.
- * Group – A group represents departments/groups within the organizaiton.
- * Role – A role represents job title or function.
- * Resource - The resource represents object that needs to be protected such as APIs, files, data, reports, etc.
- * Claim – A claim is tied with resources and defines operation and constraints that need to be inforced. It may
+  * LicensePolicy – The license policy represents overall access for the customers and it's mapped to claims.
+  * Group – A group represents departments/groups within the organizaiton.
+  * Role – A role represents job title or function.
+  * Resource - The resource represents object that needs to be protected such as APIs, files, data, reports, etc.
+  * Claim – A claim is tied with resources and defines operation and constraints that need to be inforced. It may
    define dynamic properties for for dynamic or instance based security.
- * SecurityManager – Checks access permission for principals.
+  * SecurityManager – Checks access permission for principals.
 
 ### Repository Layer
 
 This layer is responsible for accessing or storing above objects in the database. SaasRRBAC uses Sqlite by default but it can be easily mapped to other databases. Following are list of repositories supported by SaasRRBAC:
 
-	* PersistenceManager – provides high level methods to persist or query domain objects for security
-	* RealmRepository – provides database access for Realms.
-	* ClaimRepository – provides database access for Claims.
-	* PrincipalRepository – provides database access for Principals.
-	* RoleRepository – provides database access for Roles.
-	* GroupRepository – provides database access for Groups.
-	* LicensePolicyRepository – provides database access for license-policy
+  * PersistenceManager – provides high level methods to persist or query domain objects for security
+  * RealmRepository – provides database access for Realms.
+  * ClaimRepository – provides database access for Claims.
+  * PrincipalRepository – provides database access for Principals.
+  * RoleRepository – provides database access for Roles.
+  * GroupRepository – provides database access for Groups.
+  * LicensePolicyRepository – provides database access for license-policy
 
 ### Security Layer
 
@@ -112,14 +112,14 @@ This layer proivdes evaluation engine for supporting instance based security.
 
 This layer defines REST services such as:
 
-	* RealmService – this service provides REST APIs for accessing Realms.
-	* OrganizationService – this service provides REST APIs for accessing Organizations
-	* PrincipalService – this service provides REST APIs for accessing Principals.
-    * LicensePolicyService – this service provides REST APIs for accessing license policies.
-	* RoleService – this service provides REST APIs for accessing Roles.
-	* ResourceService – this service provides REST APIs for accessing resources, instances, and quota-limits.
-	* ClaimService – this service provides REST APIs for accessing Claims.
-	* SecurityService – this service provides REST APIs for authorizing claims.
+  * RealmService – this service provides REST APIs for accessing Realms.
+  * OrganizationService – this service provides REST APIs for accessing Organizations
+  * PrincipalService – this service provides REST APIs for accessing Principals.
+  * LicensePolicyService – this service provides REST APIs for accessing license policies.
+  * RoleService – this service provides REST APIs for accessing Roles.
+  * ResourceService – this service provides REST APIs for accessing resources, instances, and quota-limits.
+  * ClaimService – this service provides REST APIs for accessing Claims.
+  * SecurityService – this service provides REST APIs for authorizing claims.
 
 
 ### Caching Layer
@@ -152,13 +152,14 @@ cargo test -- --test-threads=1
 
  - Run Test Coverage
 ```
+cargo install cargo-kcov
 brew install cmake jq
 cargo kcov --print-install-kcov-sh | sh
 cd kcov-v36
 cmake -G Xcode
 xcodebuild -configuration Release
-
-cargo install cargo-kcov
+cd back-to-rbac-folder
+cargo kcov
 ```
 
  - Docs
