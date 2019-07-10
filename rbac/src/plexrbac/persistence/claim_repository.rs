@@ -15,7 +15,7 @@ use std::collections::HashMap;
 /// ClaimRepository defines methods for accessing and persisting Claim
 ///
 pub struct ClaimRepository<'a> {
-    pub data_source: &'a super::data_source::DataSource,
+    pub data_source: &'a dyn super::data_source::DataSource,
     pub audit_record_repository: super::audit_record_repository::AuditRecordRepository<'a>,
 }
 
@@ -68,7 +68,7 @@ impl<'a> ClaimRepository<'a> {
     }
 
     /// Returns all claims for given security realm
-    pub fn get_claims_by_realm(&self, ctx: &SecurityContext, realm_id: &str) -> HashMap<String, Claim> {
+    pub fn get_claims_by_realm(&self, _ctx: &SecurityContext, realm_id: &str) -> HashMap<String, Claim> {
         let mut claims = HashMap::new();
         for pclaim in &self._get_by_realm(realm_id) {
             let claim = Claim::from(pclaim); 

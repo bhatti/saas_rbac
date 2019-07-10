@@ -36,7 +36,7 @@ impl <'a> SecurityManager<'a> {
                                     info!("GRANTED PERMISSION {:?} -- {:?}", request, cr.claim);
                                     return Ok(PermissionResponse::from(cr.claim.effect()));
                                 } else {
-                                    //println!(">>>>>>>>> EVALUATED FALSE for {} -- {:?}\n{:?}", cr.constraints.as_str(), cr, request);
+                                    //info!(">>>>>>>>> EVALUATED FALSE for {} -- {:?}\n{:?}", cr.constraints.as_str(), cr, request);
                                 }
                             },
                             Err(err) => return Err(RbacError::Evaluation(err.to_string())),
@@ -97,10 +97,10 @@ mod tests {
         let ru_deposit = pm.new_claim_with(&ctx, &realm, &deposit_account, "(READ|UPDATE)").unwrap();
 
         // Mapping Principals and Claims to Roles
-        pm.map_principal_to_role(&ctx, &tom, &teller);
+        pm.map_principal_to_role(&ctx, &tom, &teller).unwrap();
 
         // Map claims to roles as follows:
-        pm.map_role_to_claim(&ctx, &teller, &ru_deposit, "U.S.", r#"employeeRegion == "Midwest""#);
+        pm.map_role_to_claim(&ctx, &teller, &ru_deposit, "U.S.", r#"employeeRegion == "Midwest""#).unwrap();
 
         let sm = SecurityManager::new(pm);
         let mut req = PermissionRequest::new(realm.id.as_str(), tom.id.as_str(), ActionType::READ, "DepositAccount", "U.S.");

@@ -10,16 +10,16 @@ extern crate evalexpr;
 use rocket::{State};
 use rocket_contrib::json::{Json};
 use rocket::http::Status;
-use chrono::{NaiveDate, NaiveDateTime, Utc};
+use rocket::response::status::Custom;
 
 use diesel::prelude::*;
 use plexrbac::domain::models::{SecurityRealm, Resource, ResourceInstance, ResourceQuota, Claim};
 use plexrbac::persistence::locator::RepositoryLocator;
 use plexrbac::persistence::data_source::PooledDataSource;
-use plexrbac::common::SecurityContext;
+use plexrbac::common::{SecurityContext};
+use plexrbac::service::common::{AssociationForm};
 use r2d2::{Pool};
 use diesel::r2d2::ConnectionManager;
-use rocket::response::status::Custom;
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 ///
@@ -357,17 +357,16 @@ pub fn delete_claim(ctx: SecurityContext, pool: State<Pool<ConnectionManager<Sql
     }
 }
 
-
 #[put("/<realm_id>/resources/<resource_id>/claims/<claim_id>/principals/<principal_id>", format = "json")]
-pub fn add_principal_to_claim(ctx: SecurityContext, pool: State<Pool<ConnectionManager<SqliteConnection>>>, realm_id: String, resource_id: String, claim_id: String, principal_id: String) -> Result<Json<usize>, Custom<String>> {
+pub fn add_principal_to_claim(ctx: SecurityContext, pool: State<Pool<ConnectionManager<SqliteConnection>>>, realm_id: String, resource_id: String, claim_id: String, principal_id: String, cc: AssociationForm) -> Result<Json<usize>, Custom<String>> { // Form<>
     let ds = PooledDataSource {pool: &*pool};
     // resource-id must exist within the realm
     if RepositoryLocator::build_resource_repository(&ds).get(&ctx, &realm_id.as_str(), &resource_id.as_str()) == None {
         return Err(Custom(Status::NotFound, format!("resource with id {} not found within relam {}", resource_id, realm_id)));
     }
     let repo = RepositoryLocator::build_claim_claimable_repository(&ds);
-    // TODO add params for constraints and effective/expired date
-    match repo.add_principal_to_claim(&ctx, principal_id.as_str(), claim_id.as_str(), "", "", Utc::now().naive_utc(), NaiveDate::from_ymd(2100, 1, 1).and_hms(0, 0, 0)) {
+    //let cc = form.into_inner();
+    match repo.add_principal_to_claim(&ctx, principal_id.as_str(), claim_id.as_str(), cc.scope.as_str(), cc.constraints.as_str(), cc.effective_at(), cc.expired_at()) {
         Ok(size) => Ok(Json(size)),
         Err(err) => Err(super::common::error_status(err)),
     }
@@ -381,7 +380,6 @@ pub fn delete_principal_from_claim(ctx: SecurityContext, pool: State<Pool<Connec
         return Err(Custom(Status::NotFound, format!("resource with id {} not found within relam {}", resource_id, realm_id)));
     }
     let repo = RepositoryLocator::build_claim_claimable_repository(&ds);
-    // TODO add params for constraints and effective/expired date
     match repo.delete_principal_from_claim(&ctx, principal_id.as_str(), claim_id.as_str()) {
         Ok(size) => Ok(Json(size)),
         Err(err) => Err(super::common::error_status(err)),
@@ -389,15 +387,15 @@ pub fn delete_principal_from_claim(ctx: SecurityContext, pool: State<Pool<Connec
 }
 
 #[put("/<realm_id>/resources/<resource_id>/claims/<claim_id>/roles/<role_id>", format = "json")]
-pub fn add_role_to_claim(ctx: SecurityContext, pool: State<Pool<ConnectionManager<SqliteConnection>>>, realm_id: String, resource_id: String, claim_id: String, role_id: String) -> Result<Json<usize>, Custom<String>> {
+pub fn add_role_to_claim(ctx: SecurityContext, pool: State<Pool<ConnectionManager<SqliteConnection>>>, realm_id: String, resource_id: String, claim_id: String, role_id: String, cc: AssociationForm) -> Result<Json<usize>, Custom<String>> { // Form<>
     let ds = PooledDataSource {pool: &*pool};
     // resource-id must exist within the realm
     if RepositoryLocator::build_resource_repository(&ds).get(&ctx, &realm_id.as_str(), &resource_id.as_str()) == None {
         return Err(Custom(Status::NotFound, format!("resource with id {} not found within relam {}", resource_id, realm_id)));
     }
     let repo = RepositoryLocator::build_claim_claimable_repository(&ds);
-    // TODO add params for constraints and effective/expired date
-    match repo.add_role_to_claim(&ctx, role_id.as_str(), claim_id.as_str(), "", "", Utc::now().naive_utc(), NaiveDate::from_ymd(2100, 1, 1).and_hms(0, 0, 0)) {
+    //let cc = form.into_inner();
+    match repo.add_role_to_claim(&ctx, role_id.as_str(), claim_id.as_str(), cc.scope.as_str(), cc.constraints.as_str(), cc.effective_at(), cc.expired_at()) {
         Ok(size) => Ok(Json(size)),
         Err(err) => Err(super::common::error_status(err)),
     }
@@ -411,7 +409,6 @@ pub fn delete_role_from_claim(ctx: SecurityContext, pool: State<Pool<ConnectionM
         return Err(Custom(Status::NotFound, format!("resource with id {} not found within relam {}", resource_id, realm_id)));
     }
     let repo = RepositoryLocator::build_claim_claimable_repository(&ds);
-    // TODO add params for constraints and effective/expired date
     match repo.delete_role_from_claim(&ctx, role_id.as_str(), claim_id.as_str()) {
         Ok(size) => Ok(Json(size)),
         Err(err) => Err(super::common::error_status(err)),
@@ -419,15 +416,15 @@ pub fn delete_role_from_claim(ctx: SecurityContext, pool: State<Pool<ConnectionM
 }
 
 #[put("/<realm_id>/resources/<resource_id>/claims/<claim_id>/licenses/<license_policy_id>", format = "json")]
-pub fn add_license_to_claim(ctx: SecurityContext, pool: State<Pool<ConnectionManager<SqliteConnection>>>, realm_id: String, resource_id: String, claim_id: String, license_policy_id: String) -> Result<Json<usize>, Custom<String>> {
+pub fn add_license_to_claim(ctx: SecurityContext, pool: State<Pool<ConnectionManager<SqliteConnection>>>, realm_id: String, resource_id: String, claim_id: String, license_policy_id: String, cc: AssociationForm) -> Result<Json<usize>, Custom<String>> { // Form<>
     let ds = PooledDataSource {pool: &*pool};
     // resource-id must exist within the realm
     if RepositoryLocator::build_resource_repository(&ds).get(&ctx, &realm_id.as_str(), &resource_id.as_str()) == None {
         return Err(Custom(Status::NotFound, format!("resource with id {} not found within relam {}", resource_id, realm_id)));
     }
     let repo = RepositoryLocator::build_claim_claimable_repository(&ds);
-    // TODO add params for constraints and effective/expired date
-    match repo.add_license_policy_to_claim(&ctx, license_policy_id.as_str(), claim_id.as_str(), "", "", Utc::now().naive_utc(), NaiveDate::from_ymd(2100, 1, 1).and_hms(0, 0, 0)) {
+    //let cc = form.into_inner();
+    match repo.add_license_policy_to_claim(&ctx, license_policy_id.as_str(), claim_id.as_str(), cc.scope.as_str(), cc.constraints.as_str(), cc.effective_at(), cc.expired_at()) {
         Ok(size) => Ok(Json(size)),
         Err(err) => Err(super::common::error_status(err)),
     }
@@ -441,7 +438,6 @@ pub fn delete_license_from_claim(ctx: SecurityContext, pool: State<Pool<Connecti
         return Err(Custom(Status::NotFound, format!("resource with id {} not found within relam {}", resource_id, realm_id)));
     }
     let repo = RepositoryLocator::build_claim_claimable_repository(&ds);
-    // TODO add params for constraints and effective/expired date
     match repo.delete_license_policy_from_claim(&ctx, license_policy_id.as_str(), claim_id.as_str()) {
         Ok(size) => Ok(Json(size)),
         Err(err) => Err(super::common::error_status(err)),

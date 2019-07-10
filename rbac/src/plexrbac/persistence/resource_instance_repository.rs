@@ -15,7 +15,7 @@ use self::uuu::Uuid;
 /// ResourceInstanceRepository defines methods for accessing and persisting Resource instances
 ///
 pub struct ResourceInstanceRepository<'a> {
-    pub data_source: &'a super::data_source::DataSource,
+    pub data_source: &'a dyn super::data_source::DataSource,
     pub audit_record_repository: super::audit_record_repository::AuditRecordRepository<'a>,
 }
 

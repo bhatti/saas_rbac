@@ -13,7 +13,7 @@ use chrono::{Utc};
 /// encompasses security of RBAC system.
 ///
 pub struct SecurityRealmRepository<'a> {
-    pub data_source: &'a super::data_source::DataSource,
+    pub data_source: &'a dyn super::data_source::DataSource,
     pub audit_record_repository: super::audit_record_repository::AuditRecordRepository<'a>,
 }
 

@@ -6,14 +6,14 @@ use super::models::PRoleRoleable;
 use plexrbac::common::Constants;
 use plexrbac::common::SecurityContext;
 use plexrbac::common::RbacError;
-use chrono::{NaiveDate, NaiveDateTime, Utc};
+use chrono::{NaiveDateTime, Utc};
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 /// RoleRoleableRepository defines association between role-roleable where roleable can be
 /// principal or group that can be associated with roles for defining access control.
 ///
 pub struct RoleRoleableRepository<'a> {
-    pub data_source: &'a super::data_source::DataSource,
+    pub data_source: &'a dyn super::data_source::DataSource,
     pub audit_record_repository: super::audit_record_repository::AuditRecordRepository<'a>,
 }
 

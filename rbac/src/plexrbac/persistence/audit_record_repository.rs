@@ -11,7 +11,7 @@ use self::uuu::Uuid;
 /// AuditRecordRepository defines methods for accessing and persisting audit records
 ///
 pub struct AuditRecordRepository<'a> {
-    pub data_source: &'a super::data_source::DataSource
+    pub data_source: &'a dyn super::data_source::DataSource
 }
 
 impl<'a> AuditRecordRepository<'a> {

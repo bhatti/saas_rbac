@@ -5,14 +5,13 @@ use super::schema::rbac_group_principals;
 use super::models::{PGroupPrincipal};
 use plexrbac::common::SecurityContext;
 use plexrbac::common::RbacError;
-use chrono::{NaiveDate, NaiveDateTime, Utc};
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 /// GroupPrincipalRepository is used to store Many-to-Many association between organization 
 /// group and principal
 ///
 pub struct GroupPrincipalRepository<'a> {
-    pub data_source: &'a super::data_source::DataSource,
+    pub data_source: &'a dyn super::data_source::DataSource,
     pub audit_record_repository: super::audit_record_repository::AuditRecordRepository<'a>,
 }
 

@@ -1,11 +1,10 @@
 //#![crate_name = "doc"]
 
-use super::models::*;
 use plexrbac::domain::models::*;
 use plexrbac::common::Constants;
 use plexrbac::common::Status;
 use plexrbac::common::SecurityContext;
-use chrono::{NaiveDate, NaiveDateTime, Utc};
+use chrono::{NaiveDate, Utc};
 use log::{info, warn};
 use std::collections::HashMap;
 use plexrbac::common::RbacError;
@@ -643,8 +642,8 @@ mod tests {
         let resource = mgr.new_resource_with(&ctx, &realm, "report").unwrap();
         let claim1 = mgr.claim_repository.create(&ctx, &Claim::new("", realm.id.as_str(), resource.id.as_str(), "READ", "allow", None)).unwrap();
         let claim2 = mgr.claim_repository.create(&ctx, &Claim::new("", realm.id.as_str(), resource.id.as_str(), "UPDATE", "allow", None)).unwrap();
-        mgr.claim_claimable_repository.add_license_policy_to_claim(&ctx, license_policy.id.as_str(), claim1.id.as_str(), "", "", Utc::now().naive_utc(), NaiveDate::from_ymd(2100, 1, 1).and_hms(0, 0, 0));
-        mgr.claim_claimable_repository.add_license_policy_to_claim(&ctx, license_policy.id.as_str(), claim2.id.as_str(), "", "", Utc::now().naive_utc(), NaiveDate::from_ymd(2100, 1, 1).and_hms(0, 0, 0));
+        mgr.claim_claimable_repository.add_license_policy_to_claim(&ctx, license_policy.id.as_str(), claim1.id.as_str(), "", "", Utc::now().naive_utc(), NaiveDate::from_ymd(2100, 1, 1).and_hms(0, 0, 0)).unwrap();
+        mgr.claim_claimable_repository.add_license_policy_to_claim(&ctx, license_policy.id.as_str(), claim2.id.as_str(), "", "", Utc::now().naive_utc(), NaiveDate::from_ymd(2100, 1, 1).and_hms(0, 0, 0)).unwrap();
         let loaded = mgr.get_org(&ctx, realm.id.as_str(), org.id.as_str()).unwrap();
         assert_eq!(3, loaded.roles.len());
         assert_eq!(2, loaded.groups.len());
@@ -669,16 +668,16 @@ mod tests {
 
         let principal = mgr.principal_repository.create(&ctx, &Principal::new("", org.id.as_str(), "myusername", None)).unwrap();
         let default_group = mgr.group_repository.create(&ctx, &Group::new("", org.id.as_str(), "default", Some("desc".to_string()), Some("parent".to_string()))).unwrap();
-        mgr.group_principal_repository.add_principal_to_group(&ctx, default_group.id.as_str(), principal.id.as_str());
+        mgr.group_principal_repository.add_principal_to_group(&ctx, default_group.id.as_str(), principal.id.as_str()).unwrap();
 
-        mgr.role_roleable_repository.add_principal_to_role(&ctx, org_manager_role.id.as_str(), principal.id.as_str(), "", Utc::now().naive_utc(), NaiveDate::from_ymd(2100, 1, 1).and_hms(0, 0, 0));
-        mgr.role_roleable_repository.add_group_to_role(&ctx, org_employee_role.id.as_str(), default_group.id.as_str(), "", Utc::now().naive_utc(), NaiveDate::from_ymd(2100, 1, 1).and_hms(0, 0, 0));
+        mgr.role_roleable_repository.add_principal_to_role(&ctx, org_manager_role.id.as_str(), principal.id.as_str(), "", Utc::now().naive_utc(), NaiveDate::from_ymd(2100, 1, 1).and_hms(0, 0, 0)).unwrap();
+        mgr.role_roleable_repository.add_group_to_role(&ctx, org_employee_role.id.as_str(), default_group.id.as_str(), "", Utc::now().naive_utc(), NaiveDate::from_ymd(2100, 1, 1).and_hms(0, 0, 0)).unwrap();
 
         let resource = mgr.new_resource_with(&ctx, &realm, "report").unwrap();
         let claim1 = mgr.claim_repository.create(&ctx, &Claim::new("", realm.id.as_str(), resource.id.as_str(), "READ", "Allow", None)).unwrap();
         let claim2 = mgr.claim_repository.create(&ctx, &Claim::new("", realm.id.as_str(), resource.id.as_str(), "UPDATE", "Allow", None)).unwrap();
-        mgr.claim_claimable_repository.add_license_policy_to_claim(&ctx, license_policy.id.as_str(), claim1.id.as_str(), "", "", Utc::now().naive_utc(), NaiveDate::from_ymd(2100, 1, 1).and_hms(0, 0, 0));
-        mgr.claim_claimable_repository.add_license_policy_to_claim(&ctx, license_policy.id.as_str(), claim2.id.as_str(), "", "", Utc::now().naive_utc(), NaiveDate::from_ymd(2100, 1, 1).and_hms(0, 0, 0));
+        mgr.claim_claimable_repository.add_license_policy_to_claim(&ctx, license_policy.id.as_str(), claim1.id.as_str(), "", "", Utc::now().naive_utc(), NaiveDate::from_ymd(2100, 1, 1).and_hms(0, 0, 0)).unwrap();
+        mgr.claim_claimable_repository.add_license_policy_to_claim(&ctx, license_policy.id.as_str(), claim2.id.as_str(), "", "", Utc::now().naive_utc(), NaiveDate::from_ymd(2100, 1, 1).and_hms(0, 0, 0)).unwrap();
         let loaded = mgr.get_principal(&ctx, realm.id.as_str(), principal.id.as_str()).unwrap();
         assert_eq!(2, loaded.roles.len());
         assert_eq!(1, loaded.groups.len());
@@ -737,20 +736,20 @@ mod tests {
         let cud_glpr = mgr.new_claim_with(&ctx, &realm, &posting_rules, "(CREATE|UPDATE|DELETE)").unwrap();
 
         // Mapping Principals and Claims to Roles
-        mgr.map_principal_to_role(&ctx, &tom, &teller);
-        mgr.map_principal_to_role(&ctx, &cassy, &csr);
-        mgr.map_principal_to_role(&ctx, &ali, &accountant);
-        mgr.map_principal_to_role(&ctx, &mike, &accountant_manager);
-        mgr.map_principal_to_role(&ctx, &larry, &loan_officer);
+        mgr.map_principal_to_role(&ctx, &tom, &teller).unwrap();
+        mgr.map_principal_to_role(&ctx, &cassy, &csr).unwrap();
+        mgr.map_principal_to_role(&ctx, &ali, &accountant).unwrap();
+        mgr.map_principal_to_role(&ctx, &mike, &accountant_manager).unwrap();
+        mgr.map_principal_to_role(&ctx, &larry, &loan_officer).unwrap();
 
         // Map claims to roles as follows:
-        mgr.map_role_to_claim(&ctx, &teller, &ru_deposit, "U.S.", r#"employeeRegion == "Midwest""#);
-        mgr.map_role_to_claim(&ctx, &csr, &cd_deposit, "U.S.", r#"employeeRegion == "Midwest""#);
-        mgr.map_role_to_claim(&ctx, &accountant, &rd_ledger, "U.S.", r#"employeeRegion == "Midwest" && ledgerYear == current_year()"#);
-        mgr.map_role_to_claim(&ctx, &accountant, &ru_loan, "U.S.", r#"employeeRegion == "Midwest" && accountBlance < 10000"#);
-        mgr.map_role_to_claim(&ctx, &accountant_manager, &cd_loan, "U.S.", r#"employeeRegion == "Midwest" && accountBlance < 10000"#);
-        mgr.map_role_to_claim(&ctx, &accountant_manager, &r_glpr, "U.S.", r#"employeeRegion == "Midwest" && ledgerYear == current_year()"#);
-        mgr.map_role_to_claim(&ctx, &loan_officer, &cud_glpr, "U.S.", r#"employeeRegion == "Midwest" && ledgerYear == current_year()"#);
+        mgr.map_role_to_claim(&ctx, &teller, &ru_deposit, "U.S.", r#"employeeRegion == "Midwest""#).unwrap();
+        mgr.map_role_to_claim(&ctx, &csr, &cd_deposit, "U.S.", r#"employeeRegion == "Midwest""#).unwrap();
+        mgr.map_role_to_claim(&ctx, &accountant, &rd_ledger, "U.S.", r#"employeeRegion == "Midwest" && ledgerYear == current_year()"#).unwrap();
+        mgr.map_role_to_claim(&ctx, &accountant, &ru_loan, "U.S.", r#"employeeRegion == "Midwest" && accountBlance < 10000"#).unwrap();
+        mgr.map_role_to_claim(&ctx, &accountant_manager, &cd_loan, "U.S.", r#"employeeRegion == "Midwest" && accountBlance < 10000"#).unwrap();
+        mgr.map_role_to_claim(&ctx, &accountant_manager, &r_glpr, "U.S.", r#"employeeRegion == "Midwest" && ledgerYear == current_year()"#).unwrap();
+        mgr.map_role_to_claim(&ctx, &loan_officer, &cud_glpr, "U.S.", r#"employeeRegion == "Midwest" && ledgerYear == current_year()"#).unwrap();
 
         let security_mgr = SecurityManager::new(mgr);
         // Tom, the teller should be able to READ DepositAccount with scope U.S when employeeRegion
@@ -827,23 +826,23 @@ mod tests {
         req.context.add("accountBlance", ValueWrapper::Int(500));
         assert_eq!(PermissionResponse::Allow, security_mgr.check(&req).unwrap());
 
-        mgr.unmap_role_from_claim(&ctx, &teller, &ru_deposit);
-        mgr.unmap_role_from_claim(&ctx, &csr, &cd_deposit);
-        mgr.unmap_role_from_claim(&ctx, &accountant, &rd_ledger);
-        mgr.unmap_role_from_claim(&ctx, &accountant, &ru_loan);
-        mgr.unmap_role_from_claim(&ctx, &accountant_manager, &cd_loan);
-        mgr.unmap_role_from_claim(&ctx, &accountant_manager, &r_glpr);
-        mgr.unmap_role_from_claim(&ctx, &loan_officer, &cud_glpr);
+        mgr.unmap_role_from_claim(&ctx, &teller, &ru_deposit).unwrap();
+        mgr.unmap_role_from_claim(&ctx, &csr, &cd_deposit).unwrap();
+        mgr.unmap_role_from_claim(&ctx, &accountant, &rd_ledger).unwrap();
+        mgr.unmap_role_from_claim(&ctx, &accountant, &ru_loan).unwrap();
+        mgr.unmap_role_from_claim(&ctx, &accountant_manager, &cd_loan).unwrap();
+        mgr.unmap_role_from_claim(&ctx, &accountant_manager, &r_glpr).unwrap();
+        mgr.unmap_role_from_claim(&ctx, &loan_officer, &cud_glpr).unwrap();
 
-        mgr.unmap_role_from_claim(&ctx, &loan_officer, &cud_glpr);
+        mgr.unmap_role_from_claim(&ctx, &loan_officer, &cud_glpr).unwrap();
         assert_eq!(7, mgr.claim_repository.get_claims_by_realm(&ctx, realm.id.as_str()).len());
         assert_eq!(7, mgr.get_claims_by_policy(&ctx, realm.id.as_str(), "99").len());
 
-        mgr.unmap_principal_from_role(&ctx, &tom, &teller);
-        mgr.unmap_principal_from_role(&ctx, &cassy, &csr);
-        mgr.unmap_principal_from_role(&ctx, &ali, &accountant);
-        mgr.unmap_principal_from_role(&ctx, &mike, &accountant_manager);
-        mgr.unmap_principal_from_role(&ctx, &larry, &loan_officer);
+        mgr.unmap_principal_from_role(&ctx, &tom, &teller).unwrap();
+        mgr.unmap_principal_from_role(&ctx, &cassy, &csr).unwrap();
+        mgr.unmap_principal_from_role(&ctx, &ali, &accountant).unwrap();
+        mgr.unmap_principal_from_role(&ctx, &mike, &accountant_manager).unwrap();
+        mgr.unmap_principal_from_role(&ctx, &larry, &loan_officer).unwrap();
     }
 
     #[test]
@@ -872,9 +871,9 @@ mod tests {
         let mike = mgr.new_principal_with(&ctx, &org, "mike").unwrap();
 
         // Mapping users to groups
-        mgr.map_principal_to_group(&ctx, &tom, &group_employee);
-        mgr.map_principal_to_group(&ctx, &mike, &group_employee);
-        mgr.map_principal_to_group(&ctx, &mike, &group_manager);
+        mgr.map_principal_to_group(&ctx, &tom, &group_employee).unwrap();
+        mgr.map_principal_to_group(&ctx, &mike, &group_employee).unwrap();
+        mgr.map_principal_to_group(&ctx, &mike, &group_manager).unwrap();
 
         // Creating Roles
         let employee = mgr.new_role_with(&ctx, &realm, &org, "Employee").unwrap();
@@ -888,12 +887,12 @@ mod tests {
         let approve_report = mgr.new_claim_with(&ctx, &realm, &expense_report, "APPROVE").unwrap();
 
         // Mapping Principals and Claims to Roles
-        mgr.map_group_to_role(&ctx, &group_employee, &employee, "");
-        mgr.map_group_to_role(&ctx, &group_manager, &manager, "");
+        mgr.map_group_to_role(&ctx, &group_employee, &employee, "").unwrap();
+        mgr.map_group_to_role(&ctx, &group_manager, &manager, "").unwrap();
 
         // Map claims to roles as follows:
-        mgr.map_role_to_claim(&ctx, &employee, &submit_report, "U.S.", r#"amount < 10000"#);
-        mgr.map_role_to_claim(&ctx, &manager, &approve_report, "U.S.", r#"amount < 10000"#);
+        mgr.map_role_to_claim(&ctx, &employee, &submit_report, "U.S.", r#"amount < 10000"#).unwrap();
+        mgr.map_role_to_claim(&ctx, &manager, &approve_report, "U.S.", r#"amount < 10000"#).unwrap();
 
         let security_mgr = SecurityManager::new(mgr);
         // Tom should be able to submit report
@@ -912,12 +911,12 @@ mod tests {
         assert_eq!(PermissionResponse::Allow, security_mgr.check(&req).unwrap());
 
         let mgr = locator.new_persistence_manager();
-        mgr.unmap_principal_from_group(&ctx, &tom, &group_employee);
-        mgr.unmap_principal_from_group(&ctx, &mike, &group_employee);
-        mgr.unmap_principal_from_group(&ctx, &mike, &group_manager);
+        mgr.unmap_principal_from_group(&ctx, &tom, &group_employee).unwrap();
+        mgr.unmap_principal_from_group(&ctx, &mike, &group_employee).unwrap();
+        mgr.unmap_principal_from_group(&ctx, &mike, &group_manager).unwrap();
 
-        mgr.unmap_group_from_role(&ctx, &group_employee, &employee);
-        mgr.unmap_group_from_role(&ctx, &group_manager, &manager);
+        mgr.unmap_group_from_role(&ctx, &group_employee, &employee).unwrap();
+        mgr.unmap_group_from_role(&ctx, &group_manager, &manager).unwrap();
     }
 
     #[test]
@@ -949,8 +948,8 @@ mod tests {
         let approve_report = mgr.new_claim_with(&ctx, &realm, &expense_report, "APPROVE").unwrap();
 
         // Map claims to roles as follows:
-        mgr.map_principal_to_claim(&ctx, &tom, &submit_report, "U.S.", r#"amount < 10000"#);
-        mgr.map_principal_to_claim(&ctx, &mike, &approve_report, "U.S.", r#"amount < 10000"#);
+        mgr.map_principal_to_claim(&ctx, &tom, &submit_report, "U.S.", r#"amount < 10000"#).unwrap();
+        mgr.map_principal_to_claim(&ctx, &mike, &approve_report, "U.S.", r#"amount < 10000"#).unwrap();
 
         let security_mgr = SecurityManager::new(mgr);
         // Tom should be able to submit report
@@ -969,8 +968,8 @@ mod tests {
         assert_eq!(PermissionResponse::Allow, security_mgr.check(&req).unwrap());
 
         let mgr = locator.new_persistence_manager();
-        mgr.unmap_principal_from_claim(&ctx, &tom, &submit_report);
-        mgr.unmap_principal_from_claim(&ctx, &mike, &approve_report);
+        mgr.unmap_principal_from_claim(&ctx, &tom, &submit_report).unwrap();
+        mgr.unmap_principal_from_claim(&ctx, &mike, &approve_report).unwrap();
     }
 
     #[test]
@@ -1005,12 +1004,12 @@ mod tests {
         let view = mgr.new_claim_with(&ctx, &realm, &feature, "VIEW").unwrap();
 
         // Mapping Principals and Claims to Roles
-        mgr.map_principal_to_role(&ctx, &tom, &customer);
-        mgr.map_principal_to_role(&ctx, &mike, &beta_customer);
+        mgr.map_principal_to_role(&ctx, &tom, &customer).unwrap();
+        mgr.map_principal_to_role(&ctx, &mike, &beta_customer).unwrap();
 
         // Map claims to roles as follows:
-        mgr.map_role_to_claim(&ctx, &customer, &view, "UI::Flag::BasicReport", r#"geo_distance_km(customer_lat, customer_lon, 47.620422, -122.349358) < 100"#);
-        mgr.map_role_to_claim(&ctx, &beta_customer, &view, "UI::Flag::AdvancedReport", r#"geo_distance_km(customer_lat, customer_lon, 47.620422, -122.349358) < 200"#);
+        mgr.map_role_to_claim(&ctx, &customer, &view, "UI::Flag::BasicReport", r#"geo_distance_km(customer_lat, customer_lon, 47.620422, -122.349358) < 100"#).unwrap();
+        mgr.map_role_to_claim(&ctx, &beta_customer, &view, "UI::Flag::AdvancedReport", r#"geo_distance_km(customer_lat, customer_lon, 47.620422, -122.349358) < 200"#).unwrap();
 
         let security_mgr = SecurityManager::new(mgr);
 
@@ -1077,25 +1076,25 @@ mod tests {
         let view = mgr.new_claim_with(&ctx, &realm, &data, "VIEW").unwrap();
 
         // Mapping Principals and Claims to Roles
-        mgr.map_principal_to_role(&ctx, &tom, &customer);
-        mgr.map_principal_to_role(&ctx, &mike, &beta_customer);
+        mgr.map_principal_to_role(&ctx, &tom, &customer).unwrap();
+        mgr.map_principal_to_role(&ctx, &mike, &beta_customer).unwrap();
 
         // Map claims to roles as follows:
-        mgr.map_role_to_claim(&ctx, &customer, &view, "Report::Summary", "");
-        mgr.map_role_to_claim(&ctx, &beta_customer, &view, "Report::Details", "");
+        mgr.map_role_to_claim(&ctx, &customer, &view, "Report::Summary", "").unwrap();
+        mgr.map_role_to_claim(&ctx, &beta_customer, &view, "Report::Details", "").unwrap();
 
         let security_mgr = SecurityManager::new(mgr);
 
         // Tom should be able to view summary
-        let mut req = PermissionRequest::new(realm.id.as_str(), tom.id.as_str(), ActionType::VIEW, "Data", "Report::Summary");
+        let req = PermissionRequest::new(realm.id.as_str(), tom.id.as_str(), ActionType::VIEW, "Data", "Report::Summary");
         assert_eq!(PermissionResponse::Allow, security_mgr.check(&req).unwrap());
 
         // Tom should not be able to view details
-        let mut req = PermissionRequest::new(realm.id.as_str(), tom.id.as_str(), ActionType::VIEW, "Data", "Report::Details");
+        let req = PermissionRequest::new(realm.id.as_str(), tom.id.as_str(), ActionType::VIEW, "Data", "Report::Details");
         assert!(security_mgr.check(&req).is_err());
 
         // Mike should be able to view details
-        let mut req = PermissionRequest::new(realm.id.as_str(), mike.id.as_str(), ActionType::VIEW, "Data", "Report::Details");
+        let req = PermissionRequest::new(realm.id.as_str(), mike.id.as_str(), ActionType::VIEW, "Data", "Report::Details");
         assert_eq!(PermissionResponse::Allow, security_mgr.check(&req).unwrap());
     }
 
@@ -1136,17 +1135,17 @@ mod tests {
         let view = mgr.new_claim_with(&ctx, &realm, &feature, "VIEW").unwrap();
 
         // Mapping Principals and Claims to Roles
-        mgr.map_principal_to_role(&ctx, &freemium_frank, &customer);
-        mgr.map_principal_to_role(&ctx, &money_matt, &customer);
-        mgr.map_principal_to_role(&ctx, &money_matt, &paid_customer);
+        mgr.map_principal_to_role(&ctx, &freemium_frank, &customer).unwrap();
+        mgr.map_principal_to_role(&ctx, &money_matt, &customer).unwrap();
+        mgr.map_principal_to_role(&ctx, &money_matt, &paid_customer).unwrap();
 
         // Map claims to policies as follows:
-        mgr.map_license_policy_to_claim(&ctx, &freemium_policy, &view, "UI::Flag::BasicReport", "");
-        mgr.map_license_policy_to_claim(&ctx, &paid_policy, &view, "UI::Flag::AdvancedReport", "");
+        mgr.map_license_policy_to_claim(&ctx, &freemium_policy, &view, "UI::Flag::BasicReport", "").unwrap();
+        mgr.map_license_policy_to_claim(&ctx, &paid_policy, &view, "UI::Flag::AdvancedReport", "").unwrap();
 
         // Map claims to roles as follows:
-        mgr.map_role_to_claim(&ctx, &customer, &view, "UI::Flag::BasicReport", "");
-        mgr.map_role_to_claim(&ctx, &paid_customer, &view, "UI::Flag::AdvancedReport", "");
+        mgr.map_role_to_claim(&ctx, &customer, &view, "UI::Flag::BasicReport", "").unwrap();
+        mgr.map_role_to_claim(&ctx, &paid_customer, &view, "UI::Flag::AdvancedReport", "").unwrap();
 
         let security_mgr = SecurityManager::new(mgr);
 
@@ -1163,8 +1162,8 @@ mod tests {
         let req = PermissionRequest::new(realm.id.as_str(), money_matt.id.as_str(), ActionType::VIEW, "Feature", "UI::Flag::AdvancedReport");
         assert_eq!(PermissionResponse::Allow, security_mgr.check(&req).unwrap());
 
-        mgr.unmap_license_policy_from_claim(&ctx, &freemium_policy, &view);
-        mgr.unmap_license_policy_from_claim(&ctx, &paid_policy, &view);
+        mgr.unmap_license_policy_from_claim(&ctx, &freemium_policy, &view).unwrap();
+        mgr.unmap_license_policy_from_claim(&ctx, &paid_policy, &view).unwrap();
     }
 
     #[test]
@@ -1206,19 +1205,19 @@ mod tests {
         let create_delete = mgr.new_claim_with(&ctx, &realm, &app, "(CREATE|DELETE)").unwrap();
 
         // Mapping Principals and Claims to Roles
-        mgr.map_principal_to_role(&ctx, &dave, &developer);
-        mgr.map_principal_to_role(&ctx, &qari, &qa);
-        mgr.map_principal_to_role(&ctx, &ali, &admin);
+        mgr.map_principal_to_role(&ctx, &dave, &developer).unwrap();
+        mgr.map_principal_to_role(&ctx, &qari, &qa).unwrap();
+        mgr.map_principal_to_role(&ctx, &ali, &admin).unwrap();
 
         // Map claims to policies as follows:
-        mgr.map_license_policy_to_claim(&ctx, &policy, &submit_view, "com.xyz.app", "appSize < 1000");
-        mgr.map_license_policy_to_claim(&ctx, &policy, &view, "com.xyz.app", "appSize < 1000");
-        mgr.map_license_policy_to_claim(&ctx, &policy, &create_delete, "com.xyz.app", "");
+        mgr.map_license_policy_to_claim(&ctx, &policy, &submit_view, "com.xyz.app", "appSize < 1000").unwrap();
+        mgr.map_license_policy_to_claim(&ctx, &policy, &view, "com.xyz.app", "appSize < 1000").unwrap();
+        mgr.map_license_policy_to_claim(&ctx, &policy, &create_delete, "com.xyz.app", "").unwrap();
 
         // Map claims to roles as follows:
-        mgr.map_role_to_claim(&ctx, &developer, &submit_view, "com.xyz.app", "appSize < 1000");
-        mgr.map_role_to_claim(&ctx, &qa, &view, "com.xyz.app", "appSize < 1000");
-        mgr.map_role_to_claim(&ctx, &admin, &create_delete, "com.xyz.app", "");
+        mgr.map_role_to_claim(&ctx, &developer, &submit_view, "com.xyz.app", "appSize < 1000").unwrap();
+        mgr.map_role_to_claim(&ctx, &qa, &view, "com.xyz.app", "appSize < 1000").unwrap();
+        mgr.map_role_to_claim(&ctx, &admin, &create_delete, "com.xyz.app", "").unwrap();
 
         let security_mgr = SecurityManager::new(mgr);
 
@@ -1299,29 +1298,29 @@ mod tests {
         let job_view_submit = mgr.new_claim_with(&ctx, &realm, &job, "(VIEW|SUBMIT)").unwrap();
 
         // Mapping Principals and Claims to Roles
-        mgr.map_principal_to_role(&ctx, &abc_dave, &abc_developer);
-        mgr.map_principal_to_role(&ctx, &abc_ali, &abc_admin);
+        mgr.map_principal_to_role(&ctx, &abc_dave, &abc_developer).unwrap();
+        mgr.map_principal_to_role(&ctx, &abc_ali, &abc_admin).unwrap();
 
-        mgr.map_principal_to_role(&ctx, &xyz_dan, &xyz_developer);
-        mgr.map_principal_to_role(&ctx, &xyz_ann, &xyz_admin);
+        mgr.map_principal_to_role(&ctx, &xyz_dan, &xyz_developer).unwrap();
+        mgr.map_principal_to_role(&ctx, &xyz_ann, &xyz_admin).unwrap();
 
         // Map claims to policies as follows:
-        mgr.map_license_policy_to_claim(&ctx, &abc_policy, &project_create_delete, "com.abc.app", "");
-        mgr.map_license_policy_to_claim(&ctx, &abc_policy, &project_view, "com.abc.app", "");
-        mgr.map_license_policy_to_claim(&ctx, &abc_policy, &job_view_submit, "com.abc.app", "appSize < 1000");
+        mgr.map_license_policy_to_claim(&ctx, &abc_policy, &project_create_delete, "com.abc.app", "").unwrap();
+        mgr.map_license_policy_to_claim(&ctx, &abc_policy, &project_view, "com.abc.app", "").unwrap();
+        mgr.map_license_policy_to_claim(&ctx, &abc_policy, &job_view_submit, "com.abc.app", "appSize < 1000").unwrap();
 
-        mgr.map_license_policy_to_claim(&ctx, &xyz_policy, &project_create_delete, "com.xyz.app", "");
-        mgr.map_license_policy_to_claim(&ctx, &xyz_policy, &project_view, "com.xyz.app", "");
-        mgr.map_license_policy_to_claim(&ctx, &xyz_policy, &job_view_submit, "com.xyz.app", "appSize < 1000");
+        mgr.map_license_policy_to_claim(&ctx, &xyz_policy, &project_create_delete, "com.xyz.app", "").unwrap();
+        mgr.map_license_policy_to_claim(&ctx, &xyz_policy, &project_view, "com.xyz.app", "").unwrap();
+        mgr.map_license_policy_to_claim(&ctx, &xyz_policy, &job_view_submit, "com.xyz.app", "appSize < 1000").unwrap();
 
         // Map claims to roles as follows:
-        mgr.map_role_to_claim(&ctx, &abc_admin, &project_create_delete, "com.abc.app", "");
-        mgr.map_role_to_claim(&ctx, &abc_developer, &project_view, "com.abc.app", "");
-        mgr.map_role_to_claim(&ctx, &abc_developer, &job_view_submit, "com.abc.app", "appSize < 1000");
+        mgr.map_role_to_claim(&ctx, &abc_admin, &project_create_delete, "com.abc.app", "").unwrap();
+        mgr.map_role_to_claim(&ctx, &abc_developer, &project_view, "com.abc.app", "").unwrap();
+        mgr.map_role_to_claim(&ctx, &abc_developer, &job_view_submit, "com.abc.app", "appSize < 1000").unwrap();
 
-        mgr.map_role_to_claim(&ctx, &xyz_admin, &project_create_delete, "com.xyz.app", "");
-        mgr.map_role_to_claim(&ctx, &xyz_developer, &project_view, "com.xyz.app", "");
-        mgr.map_role_to_claim(&ctx, &xyz_developer, &job_view_submit, "com.xyz.app", "appSize < 1000");
+        mgr.map_role_to_claim(&ctx, &xyz_admin, &project_create_delete, "com.xyz.app", "").unwrap();
+        mgr.map_role_to_claim(&ctx, &xyz_developer, &project_view, "com.xyz.app", "").unwrap();
+        mgr.map_role_to_claim(&ctx, &xyz_developer, &job_view_submit, "com.xyz.app", "appSize < 1000").unwrap();
 
         let security_mgr = SecurityManager::new(mgr);
 
@@ -1356,8 +1355,8 @@ mod tests {
         let xyz_corp = mgr.new_org_with(&ctx, "XYZ").unwrap();
 
         // Create license policies
-        let abc_policy = mgr.new_license_policy(&ctx, &abc_corp).unwrap();
-        let xyz_policy = mgr.new_license_policy(&ctx, &xyz_corp).unwrap();
+        let _abc_policy = mgr.new_license_policy(&ctx, &abc_corp).unwrap();
+        let _xyz_policy = mgr.new_license_policy(&ctx, &xyz_corp).unwrap();
 
         // Creating Resources
         let project = mgr.new_resource_with(&ctx, &realm, "Project").unwrap();

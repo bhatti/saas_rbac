@@ -1,5 +1,5 @@
 //#![crate_name = "doc"]
-    
+
 extern crate chrono;
 extern crate dotenv;
 extern crate r2d2;
@@ -10,16 +10,16 @@ extern crate evalexpr;
 use rocket::{State};
 use rocket_contrib::json::{Json};
 use rocket::http::Status;
-use chrono::{NaiveDate, NaiveDateTime, Utc};
+use rocket::response::status::Custom;
 
 use diesel::prelude::*;
 use plexrbac::domain::models::{Organization, Group, Role, Principal, LicensePolicy};
 use plexrbac::persistence::locator::RepositoryLocator;
 use plexrbac::persistence::data_source::PooledDataSource;
-use plexrbac::common::SecurityContext;
+use plexrbac::common::{SecurityContext};
+use plexrbac::service::common::{AssociationForm};
 use r2d2::{Pool};
 use diesel::r2d2::ConnectionManager;
-use rocket::response::status::Custom;
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 ///
@@ -219,16 +219,17 @@ pub fn delete_role(ctx: SecurityContext, pool: State<Pool<ConnectionManager<Sqli
     }
 }
 
+
 #[put("/<org_id>/roles/<role_id>/principals/<principal_id>")]
-pub fn add_principal_to_role(ctx: SecurityContext, pool: State<Pool<ConnectionManager<SqliteConnection>>>, org_id: String, role_id: String, principal_id: String) -> Result<Json<usize>, Custom<String>> {
+pub fn add_principal_to_role(ctx: SecurityContext, pool: State<Pool<ConnectionManager<SqliteConnection>>>, org_id: String, role_id: String, principal_id: String, cc: AssociationForm) -> Result<Json<usize>, Custom<String>> { // Form<>
     let ds = PooledDataSource {pool: &*pool};
     // role-id must exist within the organization
     if RepositoryLocator::build_role_repository(&ds).get(&ctx, &org_id.as_str(), &role_id.as_str()) == None {
         return Err(Custom(Status::NotFound, format!("role with id {} not found within organization {}", role_id, org_id)));
     }
     let repo = RepositoryLocator::build_role_roleable_repository(&ds);
-    // TODO add params for constraints and effective/expired date
-    match repo.add_principal_to_role(&ctx, role_id.as_str(), principal_id.as_str(), "", Utc::now().naive_utc(), NaiveDate::from_ymd(2100, 1, 1).and_hms(0, 0, 0)) {
+    //let cc = form.into_inner();
+    match repo.add_principal_to_role(&ctx, role_id.as_str(), principal_id.as_str(), cc.constraints.as_str(), cc.effective_at(), cc.expired_at()) {
         Ok(size) => Ok(Json(size)),
         Err(err) => Err(super::common::error_status(err)),
     }
@@ -249,15 +250,15 @@ pub fn delete_principal_from_role(ctx: SecurityContext, pool: State<Pool<Connect
 }
 
 #[put("/<org_id>/roles/<role_id>/groups/<group_id>")]
-pub fn add_group_to_role(ctx: SecurityContext, pool: State<Pool<ConnectionManager<SqliteConnection>>>, org_id: String, role_id: String, group_id: String) -> Result<Json<usize>, Custom<String>> {
+pub fn add_group_to_role(ctx: SecurityContext, pool: State<Pool<ConnectionManager<SqliteConnection>>>, org_id: String, role_id: String, group_id: String, cc: AssociationForm) -> Result<Json<usize>, Custom<String>> { // Form<>
     let ds = PooledDataSource {pool: &*pool};
     // role-id must exist within the organization
     if RepositoryLocator::build_role_repository(&ds).get(&ctx, &org_id.as_str(), &role_id.as_str()) == None {
         return Err(Custom(Status::NotFound, format!("role with id {} not found within organization {}", role_id, org_id)));
     }
     let repo = RepositoryLocator::build_role_roleable_repository(&ds);
-    // TODO add params for constraints and effective/expired date
-    match repo.add_group_to_role(&ctx, role_id.as_str(), group_id.as_str(), "", Utc::now().naive_utc(), NaiveDate::from_ymd(2100, 1, 1).and_hms(0, 0, 0)) {
+    //let cc = form.into_inner();
+    match repo.add_group_to_role(&ctx, role_id.as_str(), group_id.as_str(), cc.constraints.as_str(), cc.effective_at(), cc.expired_at()) {
         Ok(size) => Ok(Json(size)),
         Err(err) => Err(super::common::error_status(err)),
     }

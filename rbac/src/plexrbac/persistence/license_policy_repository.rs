@@ -15,7 +15,7 @@ use self::uuu::Uuid;
 /// defines overall access policies for customers
 ///
 pub struct LicensePolicyRepository<'a> {
-    pub data_source: &'a super::data_source::DataSource,
+    pub data_source: &'a dyn super::data_source::DataSource,
     pub audit_record_repository: super::audit_record_repository::AuditRecordRepository<'a>,
 }
 
@@ -224,7 +224,7 @@ mod tests {
         repo.clear();
 
         let _ = repo.create(&ctx, &LicensePolicy::new("", "99", "default-policy1", Some("desc".to_string()), Utc::now().naive_utc(), NaiveDate::from_ymd(2100, 1, 1).and_hms(0, 0, 0))).unwrap();
-        repo.create(&ctx, &LicensePolicy::new("", "99", "default-policy2", Some("desc".to_string()), Utc::now().naive_utc(), NaiveDate::from_ymd(2100, 1, 1).and_hms(0, 0, 0))).is_err();
+        assert!(repo.create(&ctx, &LicensePolicy::new("", "99", "default-policy2", Some("desc".to_string()), Utc::now().naive_utc(), NaiveDate::from_ymd(2100, 1, 1).and_hms(0, 0, 0))).is_err());
         let policies = repo.get_by_org(&ctx, "99");
         assert_eq!(1, policies.len());
     }

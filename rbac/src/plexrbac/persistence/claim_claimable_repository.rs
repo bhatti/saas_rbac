@@ -6,14 +6,14 @@ use super::schema::rbac_claim_claimables;
 use super::models::PClaimClaimable;
 use plexrbac::common::SecurityContext;
 use plexrbac::common::RbacError;
-use chrono::{NaiveDate, NaiveDateTime, Utc};
+use chrono::{NaiveDateTime, Utc};
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 /// ClaimClaimableRepository defines association between claim an claimable -- principal, group,
 /// license-policy
 ///
 pub struct ClaimClaimableRepository<'a> {
-    pub data_source: &'a super::data_source::DataSource,
+    pub data_source: &'a dyn super::data_source::DataSource,
     pub audit_record_repository: super::audit_record_repository::AuditRecordRepository<'a>,
 }
 

@@ -183,7 +183,7 @@ impl error::Error for RbacError {
         }
     }
 
-    fn cause(&self) -> Option<&error::Error> {
+    fn cause(&self) -> Option<&dyn error::Error> {
         match *self {
             RbacError::Duplicate(_) => None,
             RbacError::NotFound(_) => None,
