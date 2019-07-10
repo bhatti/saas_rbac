@@ -470,181 +470,181 @@ mod tests {
     #[test]
     fn test_get_full_org() {
         let ctx = SecurityContext::new("myorg", "myid");
-        let cf = DefaultDataSource::new();
-        let locator = RepositoryLocator::new(&cf);
-        let mgr = locator.new_persistence_manager();
-        mgr.clear();
-        let realm = mgr.realm_repository.create(&ctx, &SecurityRealm::new("myrealm", None)).unwrap();
-        let org = mgr.org_repository.create(&ctx, &Organization::new("", None, "myorg", "url", None)).unwrap();
-        let license_policy = mgr.license_policy_repository.create(&ctx, &LicensePolicy::new("", org.id.as_str(), "default-policy", Some("desc".to_string()), Utc::now().naive_utc(), NaiveDate::from_ymd(2100, 1, 1).and_hms(0, 0, 0))).unwrap();
+        let ds = DefaultDataSource::new();
+        let locator = RepositoryLocator::new(&ds);
+        let pm = locator.new_persistence_manager();
+        pm.clear();
+        let realm = pm.realm_repository.create(&ctx, &SecurityRealm::new("myrealm", None)).unwrap();
+        let org = pm.org_repository.create(&ctx, &Organization::new("", None, "myorg", "url", None)).unwrap();
+        let license_policy = pm.license_policy_repository.create(&ctx, &LicensePolicy::new("", org.id.as_str(), "default-policy", Some("desc".to_string()), Utc::now().naive_utc(), NaiveDate::from_ymd(2100, 1, 1).and_hms(0, 0, 0))).unwrap();
         let org_str = format!("{:?}", org);
-        let loaded = mgr.get_org(&ctx, realm.id.as_str(), org.id.as_str()).unwrap();
+        let loaded = pm.get_org(&ctx, realm.id.as_str(), org.id.as_str()).unwrap();
         assert_eq!(org_str, format!("{:?}", loaded));
-        mgr.license_policy_repository.get(&ctx, org.id.as_str(), license_policy.id.as_str()).unwrap();
+        pm.license_policy_repository.get(&ctx, org.id.as_str(), license_policy.id.as_str()).unwrap();
     }
 
     #[test]
     fn test_get_full_principal() {
         let ctx = SecurityContext::new("myorg", "myid");
-        let cf = DefaultDataSource::new();
-        let locator = RepositoryLocator::new(&cf);
-        let mgr = locator.new_persistence_manager();
-        mgr.clear();
-        let realm = mgr.realm_repository.create(&ctx, &SecurityRealm::new("myrealm", None)).unwrap();
-        let org = mgr.org_repository.create(&ctx, &Organization::new("", None, "myorg", "url", None)).unwrap();
-        let license_policy = mgr.license_policy_repository.create(&ctx, &LicensePolicy::new("", org.id.as_str(), "default-policy", Some("desc".to_string()), Utc::now().naive_utc(), NaiveDate::from_ymd(2100, 1, 1).and_hms(0, 0, 0))).unwrap();
+        let ds = DefaultDataSource::new();
+        let locator = RepositoryLocator::new(&ds);
+        let pm = locator.new_persistence_manager();
+        pm.clear();
+        let realm = pm.realm_repository.create(&ctx, &SecurityRealm::new("myrealm", None)).unwrap();
+        let org = pm.org_repository.create(&ctx, &Organization::new("", None, "myorg", "url", None)).unwrap();
+        let license_policy = pm.license_policy_repository.create(&ctx, &LicensePolicy::new("", org.id.as_str(), "default-policy", Some("desc".to_string()), Utc::now().naive_utc(), NaiveDate::from_ymd(2100, 1, 1).and_hms(0, 0, 0))).unwrap();
         //
-        let principal = mgr.principal_repository.create(&ctx, &Principal::new("", org.id.as_str(), "myusername-principal", Some("desc".to_string()))).unwrap();
+        let principal = pm.principal_repository.create(&ctx, &Principal::new("", org.id.as_str(), "myusername-principal", Some("desc".to_string()))).unwrap();
         let principal_str = format!("{:?}", principal);
-        let loaded = mgr.get_principal(&ctx, realm.id.as_str(), principal.id.as_str()).unwrap();
+        let loaded = pm.get_principal(&ctx, realm.id.as_str(), principal.id.as_str()).unwrap();
         assert_eq!(principal_str, format!("{:?}", loaded));
-        mgr.license_policy_repository.get(&ctx, org.id.as_str(), license_policy.id.as_str()).unwrap();
+        pm.license_policy_repository.get(&ctx, org.id.as_str(), license_policy.id.as_str()).unwrap();
     }
 
     #[test]
     fn test_add_delete_principal_to_group() {
         let ctx = SecurityContext::new("myorg", "myid");
-        let cf = DefaultDataSource::new();
-        let locator = RepositoryLocator::new(&cf);
-        let mgr = locator.new_persistence_manager();
-        mgr.clear();
-        let org = mgr.org_repository.create(&ctx, &Organization::new("", None, "myorg", "url", None)).unwrap();
-        let group = mgr.group_repository.create(&ctx, &Group::new("", org.id.as_str(), "mygroup", Some("desc".to_string()), Some("parent".to_string()))).unwrap();
-        let principal = mgr.principal_repository.create(&ctx, &Principal::new("", org.id.as_str(), "myusername", None)).unwrap();
-        assert!(mgr.group_principal_repository.add_principal_to_group(&ctx, group.id.as_str(), principal.id.as_str()).is_ok());
-        assert!(mgr.group_principal_repository.delete_principal_from_group(&ctx, group.id.as_str(), principal.id.as_str()).is_ok());
+        let ds = DefaultDataSource::new();
+        let locator = RepositoryLocator::new(&ds);
+        let pm = locator.new_persistence_manager();
+        pm.clear();
+        let org = pm.org_repository.create(&ctx, &Organization::new("", None, "myorg", "url", None)).unwrap();
+        let group = pm.group_repository.create(&ctx, &Group::new("", org.id.as_str(), "mygroup", Some("desc".to_string()), Some("parent".to_string()))).unwrap();
+        let principal = pm.principal_repository.create(&ctx, &Principal::new("", org.id.as_str(), "myusername", None)).unwrap();
+        assert!(pm.group_principal_repository.add_principal_to_group(&ctx, group.id.as_str(), principal.id.as_str()).is_ok());
+        assert!(pm.group_principal_repository.delete_principal_from_group(&ctx, group.id.as_str(), principal.id.as_str()).is_ok());
     }
 
     #[test]
     fn test_add_delete_principal_to_role() {
         let ctx = SecurityContext::new("myorg", "myid");
-        let cf = DefaultDataSource::new();
-        let locator = RepositoryLocator::new(&cf);
-        let mgr = locator.new_persistence_manager();
-        mgr.clear();
-        let realm = mgr.realm_repository.create(&ctx, &SecurityRealm::new("myrealm", None)).unwrap();
-        let org = mgr.org_repository.create(&ctx, &Organization::new("", None, "myorg", "url", None)).unwrap();
+        let ds = DefaultDataSource::new();
+        let locator = RepositoryLocator::new(&ds);
+        let pm = locator.new_persistence_manager();
+        pm.clear();
+        let realm = pm.realm_repository.create(&ctx, &SecurityRealm::new("myrealm", None)).unwrap();
+        let org = pm.org_repository.create(&ctx, &Organization::new("", None, "myorg", "url", None)).unwrap();
         //
-        let role = mgr.role_repository.create(&ctx, &Role::new("", realm.id.as_str(), org.id.as_str(), "myrole", Some("desc".to_string()), Some("parent".to_string()))).unwrap();
-        let principal = mgr.principal_repository.create(&ctx, &Principal::new("", org.id.as_str(), "myusername", None)).unwrap();
+        let role = pm.role_repository.create(&ctx, &Role::new("", realm.id.as_str(), org.id.as_str(), "myrole", Some("desc".to_string()), Some("parent".to_string()))).unwrap();
+        let principal = pm.principal_repository.create(&ctx, &Principal::new("", org.id.as_str(), "myusername", None)).unwrap();
 
-        assert!(mgr.role_roleable_repository.add_principal_to_role(&ctx, role.id.as_str(), principal.id.as_str(), "", Utc::now().naive_utc(), NaiveDate::from_ymd(2100, 1, 1).and_hms(0, 0, 0)).is_ok());
-        assert!(mgr.role_roleable_repository.delete_principal_from_role(&ctx, role.id.as_str(), principal.id.as_str()).is_ok());
+        assert!(pm.role_roleable_repository.add_principal_to_role(&ctx, role.id.as_str(), principal.id.as_str(), "", Utc::now().naive_utc(), NaiveDate::from_ymd(2100, 1, 1).and_hms(0, 0, 0)).is_ok());
+        assert!(pm.role_roleable_repository.delete_principal_from_role(&ctx, role.id.as_str(), principal.id.as_str()).is_ok());
     }
 
     #[test]
     fn test_add_delete_principal_to_claims() {
         let ctx = SecurityContext::new("myorg", "myid");
-        let cf = DefaultDataSource::new();
-        let locator = RepositoryLocator::new(&cf);
-        let mgr = locator.new_persistence_manager();
-        mgr.clear();
-        let realm = mgr.realm_repository.create(&ctx, &SecurityRealm::new("myrealm", None)).unwrap();
-        let org = mgr.org_repository.create(&ctx, &Organization::new("", None, "myorg", "url", None)).unwrap();
-        let principal = mgr.principal_repository.create(&ctx, &Principal::new("", org.id.as_str(), "myusername", None)).unwrap();
-        let resource = mgr.new_resource_with(&ctx, &realm, "report").unwrap();
-        let claim1 = mgr.claim_repository.create(&ctx, &Claim::new("", realm.id.as_str(), resource.id.as_str(), "READ", Constants::Deny.to_string().as_str(), None)).unwrap();
-        let claim2 = mgr.claim_repository.create(&ctx, &Claim::new("", realm.id.as_str(), resource.id.as_str(), "UPDATE", Constants::Allow.to_string().as_str(), None)).unwrap();
-        assert!(mgr.claim_claimable_repository.add_principal_to_claim(&ctx, principal.id.as_str(), claim1.id.as_str(), "", "", Utc::now().naive_utc(), NaiveDate::from_ymd(2100, 1, 1).and_hms(0, 0, 0)).is_ok());
-        assert!(mgr.claim_claimable_repository.add_principal_to_claim(&ctx, principal.id.as_str(), claim2.id.as_str(), "", "", Utc::now().naive_utc(), NaiveDate::from_ymd(2100, 1, 1).and_hms(0, 0, 0)).is_ok());
-        assert!(mgr.claim_claimable_repository.delete_principal_from_claim(&ctx, principal.id.as_str(), claim1.id.as_str()).is_ok());
-        assert!(mgr.claim_claimable_repository.delete_principal_from_claim(&ctx, principal.id.as_str(), claim2.id.as_str()).is_ok());
+        let ds = DefaultDataSource::new();
+        let locator = RepositoryLocator::new(&ds);
+        let pm = locator.new_persistence_manager();
+        pm.clear();
+        let realm = pm.realm_repository.create(&ctx, &SecurityRealm::new("myrealm", None)).unwrap();
+        let org = pm.org_repository.create(&ctx, &Organization::new("", None, "myorg", "url", None)).unwrap();
+        let principal = pm.principal_repository.create(&ctx, &Principal::new("", org.id.as_str(), "myusername", None)).unwrap();
+        let resource = pm.new_resource_with(&ctx, &realm, "report").unwrap();
+        let claim1 = pm.claim_repository.create(&ctx, &Claim::new("", realm.id.as_str(), resource.id.as_str(), "READ", Constants::Deny.to_string().as_str(), None)).unwrap();
+        let claim2 = pm.claim_repository.create(&ctx, &Claim::new("", realm.id.as_str(), resource.id.as_str(), "UPDATE", Constants::Allow.to_string().as_str(), None)).unwrap();
+        assert!(pm.claim_claimable_repository.add_principal_to_claim(&ctx, principal.id.as_str(), claim1.id.as_str(), "", "", Utc::now().naive_utc(), NaiveDate::from_ymd(2100, 1, 1).and_hms(0, 0, 0)).is_ok());
+        assert!(pm.claim_claimable_repository.add_principal_to_claim(&ctx, principal.id.as_str(), claim2.id.as_str(), "", "", Utc::now().naive_utc(), NaiveDate::from_ymd(2100, 1, 1).and_hms(0, 0, 0)).is_ok());
+        assert!(pm.claim_claimable_repository.delete_principal_from_claim(&ctx, principal.id.as_str(), claim1.id.as_str()).is_ok());
+        assert!(pm.claim_claimable_repository.delete_principal_from_claim(&ctx, principal.id.as_str(), claim2.id.as_str()).is_ok());
     }
 
     #[test]
     fn test_add_delete_role_to_claims() {
         let ctx = SecurityContext::new("myorg", "myid");
-        let cf = DefaultDataSource::new();
-        let locator = RepositoryLocator::new(&cf);
-        let mgr = locator.new_persistence_manager();
-        mgr.clear();
-        let realm = mgr.realm_repository.create(&ctx, &SecurityRealm::new("myrealm", None)).unwrap();
-        let org = mgr.org_repository.create(&ctx, &Organization::new("", None, "myorg", "url", None)).unwrap();
-        let role = mgr.role_repository.create(&ctx, &Role::new("", realm.id.as_str(), org.id.as_str(), "myrole", None, None)).unwrap();
-        let resource = mgr.new_resource_with(&ctx, &realm, "report").unwrap();
-        let claim1 = mgr.claim_repository.create(&ctx, &Claim::new("", realm.id.as_str(), resource.id.as_str(), "READ", Constants::Deny.to_string().as_str(), None)).unwrap();
-        let claim2 = mgr.claim_repository.create(&ctx, &Claim::new("", realm.id.as_str(), resource.id.as_str(), "UPDATE", Constants::Allow.to_string().as_str(), None)).unwrap();
-        assert!(mgr.claim_claimable_repository.add_role_to_claim(&ctx, role.id.as_str(), claim1.id.as_str(), "", "", Utc::now().naive_utc(), NaiveDate::from_ymd(2100, 1, 1).and_hms(0, 0, 0)).is_ok());
-        assert!(mgr.claim_claimable_repository.add_role_to_claim(&ctx, role.id.as_str(), claim2.id.as_str(), "", "", Utc::now().naive_utc(), NaiveDate::from_ymd(2100, 1, 1).and_hms(0, 0, 0)).is_ok());
-        assert!(mgr.claim_claimable_repository.delete_role_from_claim(&ctx, role.id.as_str(), claim1.id.as_str()).is_ok());
-        assert!(mgr.claim_claimable_repository.delete_role_from_claim(&ctx, role.id.as_str(), claim2.id.as_str()).is_ok());
+        let ds = DefaultDataSource::new();
+        let locator = RepositoryLocator::new(&ds);
+        let pm = locator.new_persistence_manager();
+        pm.clear();
+        let realm = pm.realm_repository.create(&ctx, &SecurityRealm::new("myrealm", None)).unwrap();
+        let org = pm.org_repository.create(&ctx, &Organization::new("", None, "myorg", "url", None)).unwrap();
+        let role = pm.role_repository.create(&ctx, &Role::new("", realm.id.as_str(), org.id.as_str(), "myrole", None, None)).unwrap();
+        let resource = pm.new_resource_with(&ctx, &realm, "report").unwrap();
+        let claim1 = pm.claim_repository.create(&ctx, &Claim::new("", realm.id.as_str(), resource.id.as_str(), "READ", Constants::Deny.to_string().as_str(), None)).unwrap();
+        let claim2 = pm.claim_repository.create(&ctx, &Claim::new("", realm.id.as_str(), resource.id.as_str(), "UPDATE", Constants::Allow.to_string().as_str(), None)).unwrap();
+        assert!(pm.claim_claimable_repository.add_role_to_claim(&ctx, role.id.as_str(), claim1.id.as_str(), "", "", Utc::now().naive_utc(), NaiveDate::from_ymd(2100, 1, 1).and_hms(0, 0, 0)).is_ok());
+        assert!(pm.claim_claimable_repository.add_role_to_claim(&ctx, role.id.as_str(), claim2.id.as_str(), "", "", Utc::now().naive_utc(), NaiveDate::from_ymd(2100, 1, 1).and_hms(0, 0, 0)).is_ok());
+        assert!(pm.claim_claimable_repository.delete_role_from_claim(&ctx, role.id.as_str(), claim1.id.as_str()).is_ok());
+        assert!(pm.claim_claimable_repository.delete_role_from_claim(&ctx, role.id.as_str(), claim2.id.as_str()).is_ok());
     }
 
     #[test]
     fn test_get_save_resource_quota() {
         let ctx = SecurityContext::new("myorg", "myid");
-        let cf = DefaultDataSource::new();
-        let locator = RepositoryLocator::new(&cf);
-        let mgr = locator.new_persistence_manager();
-        mgr.clear();
-        let realm = mgr.realm_repository.create(&ctx, &SecurityRealm::new("myrealm", None)).unwrap();
+        let ds = DefaultDataSource::new();
+        let locator = RepositoryLocator::new(&ds);
+        let pm = locator.new_persistence_manager();
+        pm.clear();
+        let realm = pm.realm_repository.create(&ctx, &SecurityRealm::new("myrealm", None)).unwrap();
 
-        let resource = mgr.new_resource_with(&ctx, &realm, "report").unwrap();
-        let loaded = mgr.resource_repository.get(&ctx, "myrealm", resource.id.as_str()).unwrap();
+        let resource = pm.new_resource_with(&ctx, &realm, "report").unwrap();
+        let loaded = pm.resource_repository.get(&ctx, "myrealm", resource.id.as_str()).unwrap();
         assert_eq!(format!("{:?}", resource), format!("{:?}", loaded));
 
-        let org = mgr.org_repository.create(&ctx, &Organization::new("", None, "myorg", "url", None)).unwrap();
+        let org = pm.org_repository.create(&ctx, &Organization::new("", None, "myorg", "url", None)).unwrap();
 
-        let policy = mgr.license_policy_repository.create(&ctx, &LicensePolicy::new("", org.id.as_str(), "default-policy", Some("desc".to_string()), Utc::now().naive_utc(), NaiveDate::from_ymd(2100, 1, 1).and_hms(0, 0, 0))).unwrap();
+        let policy = pm.license_policy_repository.create(&ctx, &LicensePolicy::new("", org.id.as_str(), "default-policy", Some("desc".to_string()), Utc::now().naive_utc(), NaiveDate::from_ymd(2100, 1, 1).and_hms(0, 0, 0))).unwrap();
 
-        let _ = mgr.resource_quota_repository.create(&ctx, &ResourceQuota::new("", resource.id.as_str(), policy.id.as_str(), "", 2, Utc::now().naive_utc(), NaiveDate::from_ymd(2100, 1, 1).and_hms(0, 0, 0))).unwrap();
+        let _ = pm.resource_quota_repository.create(&ctx, &ResourceQuota::new("", resource.id.as_str(), policy.id.as_str(), "", 2, Utc::now().naive_utc(), NaiveDate::from_ymd(2100, 1, 1).and_hms(0, 0, 0))).unwrap();
 
-        let instance = mgr.resource_instance_repository._create(&ctx, &ResourceInstance::new("", resource.id.as_str(), "22", "", "refid", "INFLIGHT", Some("blah".to_string()))).unwrap();
+        let instance = pm.resource_instance_repository._create(&ctx, &ResourceInstance::new("", resource.id.as_str(), "22", "", "refid", "INFLIGHT", Some("blah".to_string()))).unwrap();
 
-        let loaded = mgr.resource_instance_repository.get(&ctx, instance.id.as_str()).unwrap();
+        let loaded = pm.resource_instance_repository.get(&ctx, instance.id.as_str()).unwrap();
         assert_eq!(format!("{:?}", instance), format!("{:?}", loaded));
 
-        let quota = mgr.resource_quota_repository.create(&ctx, &ResourceQuota::new("", resource.id.as_str(), "22", "", 22, Utc::now().naive_utc(), NaiveDate::from_ymd(2100, 1, 1).and_hms(0, 0, 0))).unwrap();
-        let loaded = mgr.resource_quota_repository.get(&ctx, quota.id.as_str()).unwrap();
+        let quota = pm.resource_quota_repository.create(&ctx, &ResourceQuota::new("", resource.id.as_str(), "22", "", 22, Utc::now().naive_utc(), NaiveDate::from_ymd(2100, 1, 1).and_hms(0, 0, 0))).unwrap();
+        let loaded = pm.resource_quota_repository.get(&ctx, quota.id.as_str()).unwrap();
         assert_eq!(format!("{:?}", quota), format!("{:?}", loaded));
     }
 
     #[test]
     fn test_add_delete_claims_to_license_policy() {
         let ctx = SecurityContext::new("myorg", "myid");
-        let cf = DefaultDataSource::new();
-        let locator = RepositoryLocator::new(&cf);
-        let mgr = locator.new_persistence_manager();
-        mgr.clear();
-        let realm = mgr.realm_repository.create(&ctx, &SecurityRealm::new("myrealm", None)).unwrap();
-        let org = mgr.org_repository.create(&ctx, &Organization::new("", None, "myorg", "url", None)).unwrap();
-        let license_policy = mgr.license_policy_repository.create(&ctx, &LicensePolicy::new("", org.id.as_str(), "default-policy", Some("desc".to_string()), Utc::now().naive_utc(), NaiveDate::from_ymd(2100, 1, 1).and_hms(0, 0, 0))).unwrap();
+        let ds = DefaultDataSource::new();
+        let locator = RepositoryLocator::new(&ds);
+        let pm = locator.new_persistence_manager();
+        pm.clear();
+        let realm = pm.realm_repository.create(&ctx, &SecurityRealm::new("myrealm", None)).unwrap();
+        let org = pm.org_repository.create(&ctx, &Organization::new("", None, "myorg", "url", None)).unwrap();
+        let license_policy = pm.license_policy_repository.create(&ctx, &LicensePolicy::new("", org.id.as_str(), "default-policy", Some("desc".to_string()), Utc::now().naive_utc(), NaiveDate::from_ymd(2100, 1, 1).and_hms(0, 0, 0))).unwrap();
 
-        let resource = mgr.new_resource_with(&ctx, &realm, "report").unwrap();
-        let claim1 = mgr.claim_repository.create(&ctx, &Claim::new("", realm.id.as_str(), resource.id.as_str(), "READ", "allow", None)).unwrap();
-        let claim2 = mgr.claim_repository.create(&ctx, &Claim::new("", realm.id.as_str(), resource.id.as_str(), "UPDATE", "allow", None)).unwrap();
+        let resource = pm.new_resource_with(&ctx, &realm, "report").unwrap();
+        let claim1 = pm.claim_repository.create(&ctx, &Claim::new("", realm.id.as_str(), resource.id.as_str(), "READ", "allow", None)).unwrap();
+        let claim2 = pm.claim_repository.create(&ctx, &Claim::new("", realm.id.as_str(), resource.id.as_str(), "UPDATE", "allow", None)).unwrap();
 
-        assert!(mgr.claim_claimable_repository.add_license_policy_to_claim(&ctx, license_policy.id.as_str(), claim1.id.as_str(), "", "", Utc::now().naive_utc(), NaiveDate::from_ymd(2100, 1, 1).and_hms(0, 0, 0)).is_ok());
-        assert!(mgr.claim_claimable_repository.add_license_policy_to_claim(&ctx, license_policy.id.as_str(), claim2.id.as_str(), "", "", Utc::now().naive_utc(), NaiveDate::from_ymd(2100, 1, 1).and_hms(0, 0, 0)).is_ok());
-        assert!(mgr.claim_claimable_repository.delete_license_policy_from_claim(&ctx, license_policy.id.as_str(), claim1.id.as_str()).is_ok());
-        assert!(mgr.claim_claimable_repository.delete_license_policy_from_claim(&ctx, license_policy.id.as_str(), claim2.id.as_str()).is_ok());
+        assert!(pm.claim_claimable_repository.add_license_policy_to_claim(&ctx, license_policy.id.as_str(), claim1.id.as_str(), "", "", Utc::now().naive_utc(), NaiveDate::from_ymd(2100, 1, 1).and_hms(0, 0, 0)).is_ok());
+        assert!(pm.claim_claimable_repository.add_license_policy_to_claim(&ctx, license_policy.id.as_str(), claim2.id.as_str(), "", "", Utc::now().naive_utc(), NaiveDate::from_ymd(2100, 1, 1).and_hms(0, 0, 0)).is_ok());
+        assert!(pm.claim_claimable_repository.delete_license_policy_from_claim(&ctx, license_policy.id.as_str(), claim1.id.as_str()).is_ok());
+        assert!(pm.claim_claimable_repository.delete_license_policy_from_claim(&ctx, license_policy.id.as_str(), claim2.id.as_str()).is_ok());
 
-        let loaded = mgr.license_policy_repository.get(&ctx, org.id.as_str(), license_policy.id.as_str()).unwrap();
+        let loaded = pm.license_policy_repository.get(&ctx, org.id.as_str(), license_policy.id.as_str()).unwrap();
         assert_eq!(format!("{:?}", license_policy), format!("{:?}", loaded));
     }
 
     #[test]
     fn test_populate_org() {
         let ctx = SecurityContext::new("myorg", "myid");
-        let cf = DefaultDataSource::new();
-        let locator = RepositoryLocator::new(&cf);
-        let mgr = locator.new_persistence_manager();
-        mgr.clear();
-        let realm = mgr.realm_repository.create(&ctx, &SecurityRealm::new("myrealm", None)).unwrap();
-        let org = mgr.org_repository.create(&ctx, &Organization::new("", None, "myorg", "url", None)).unwrap();
-        let license_policy = mgr.license_policy_repository.create(&ctx, &LicensePolicy::new("", org.id.as_str(), "default-policy", Some("desc".to_string()), Utc::now().naive_utc(), NaiveDate::from_ymd(2100, 1, 1).and_hms(0, 0, 0))).unwrap();
-        mgr.role_repository.create(&ctx, &Role::new("", realm.id.as_str(), org.id.as_str(), "admin", None, None)).unwrap();
-        mgr.role_repository.create(&ctx, &Role::new("", realm.id.as_str(), org.id.as_str(), "employee", None, None)).unwrap();
-        mgr.role_repository.create(&ctx, &Role::new("", realm.id.as_str(), org.id.as_str(), "manager", None, None)).unwrap();
-        mgr.group_repository.create(&ctx, &Group::new("", org.id.as_str(), "default", Some("desc".to_string()), Some("parent".to_string()))).unwrap();
-        mgr.group_repository.create(&ctx, &Group::new("", org.id.as_str(), "devops", Some("desc".to_string()), Some("parent".to_string()))).unwrap();
+        let ds = DefaultDataSource::new();
+        let locator = RepositoryLocator::new(&ds);
+        let pm = locator.new_persistence_manager();
+        pm.clear();
+        let realm = pm.realm_repository.create(&ctx, &SecurityRealm::new("myrealm", None)).unwrap();
+        let org = pm.org_repository.create(&ctx, &Organization::new("", None, "myorg", "url", None)).unwrap();
+        let license_policy = pm.license_policy_repository.create(&ctx, &LicensePolicy::new("", org.id.as_str(), "default-policy", Some("desc".to_string()), Utc::now().naive_utc(), NaiveDate::from_ymd(2100, 1, 1).and_hms(0, 0, 0))).unwrap();
+        pm.role_repository.create(&ctx, &Role::new("", realm.id.as_str(), org.id.as_str(), "admin", None, None)).unwrap();
+        pm.role_repository.create(&ctx, &Role::new("", realm.id.as_str(), org.id.as_str(), "employee", None, None)).unwrap();
+        pm.role_repository.create(&ctx, &Role::new("", realm.id.as_str(), org.id.as_str(), "manager", None, None)).unwrap();
+        pm.group_repository.create(&ctx, &Group::new("", org.id.as_str(), "default", Some("desc".to_string()), Some("parent".to_string()))).unwrap();
+        pm.group_repository.create(&ctx, &Group::new("", org.id.as_str(), "devops", Some("desc".to_string()), Some("parent".to_string()))).unwrap();
 
-        let resource = mgr.new_resource_with(&ctx, &realm, "report").unwrap();
-        let claim1 = mgr.claim_repository.create(&ctx, &Claim::new("", realm.id.as_str(), resource.id.as_str(), "READ", "allow", None)).unwrap();
-        let claim2 = mgr.claim_repository.create(&ctx, &Claim::new("", realm.id.as_str(), resource.id.as_str(), "UPDATE", "allow", None)).unwrap();
-        mgr.claim_claimable_repository.add_license_policy_to_claim(&ctx, license_policy.id.as_str(), claim1.id.as_str(), "", "", Utc::now().naive_utc(), NaiveDate::from_ymd(2100, 1, 1).and_hms(0, 0, 0)).unwrap();
-        mgr.claim_claimable_repository.add_license_policy_to_claim(&ctx, license_policy.id.as_str(), claim2.id.as_str(), "", "", Utc::now().naive_utc(), NaiveDate::from_ymd(2100, 1, 1).and_hms(0, 0, 0)).unwrap();
-        let loaded = mgr.get_org(&ctx, realm.id.as_str(), org.id.as_str()).unwrap();
+        let resource = pm.new_resource_with(&ctx, &realm, "report").unwrap();
+        let claim1 = pm.claim_repository.create(&ctx, &Claim::new("", realm.id.as_str(), resource.id.as_str(), "READ", "allow", None)).unwrap();
+        let claim2 = pm.claim_repository.create(&ctx, &Claim::new("", realm.id.as_str(), resource.id.as_str(), "UPDATE", "allow", None)).unwrap();
+        pm.claim_claimable_repository.add_license_policy_to_claim(&ctx, license_policy.id.as_str(), claim1.id.as_str(), "", "", Utc::now().naive_utc(), NaiveDate::from_ymd(2100, 1, 1).and_hms(0, 0, 0)).unwrap();
+        pm.claim_claimable_repository.add_license_policy_to_claim(&ctx, license_policy.id.as_str(), claim2.id.as_str(), "", "", Utc::now().naive_utc(), NaiveDate::from_ymd(2100, 1, 1).and_hms(0, 0, 0)).unwrap();
+        let loaded = pm.get_org(&ctx, realm.id.as_str(), org.id.as_str()).unwrap();
         assert_eq!(3, loaded.roles.len());
         assert_eq!(2, loaded.groups.len());
         assert_eq!(2, loaded.claims.len());
@@ -653,35 +653,35 @@ mod tests {
     #[test]
     fn test_populate_principal() {
         let ctx = SecurityContext::new("myorg", "myid");
-        let cf = DefaultDataSource::new();
-        let locator = RepositoryLocator::new(&cf);
-        let mgr = locator.new_persistence_manager();
-        mgr.clear();
-        let realm = mgr.realm_repository.create(&ctx, &SecurityRealm::new("myrealm", None)).unwrap();
-        let org = mgr.org_repository.create(&ctx, &Organization::new("", None, "myorg", "url", None)).unwrap();
-        let license_policy = mgr.license_policy_repository.create(&ctx, &LicensePolicy::new("", org.id.as_str(), "default-policy", Some("desc".to_string()), Utc::now().naive_utc(), NaiveDate::from_ymd(2100, 1, 1).and_hms(0, 0, 0))).unwrap();
+        let ds = DefaultDataSource::new();
+        let locator = RepositoryLocator::new(&ds);
+        let pm = locator.new_persistence_manager();
+        pm.clear();
+        let realm = pm.realm_repository.create(&ctx, &SecurityRealm::new("myrealm", None)).unwrap();
+        let org = pm.org_repository.create(&ctx, &Organization::new("", None, "myorg", "url", None)).unwrap();
+        let license_policy = pm.license_policy_repository.create(&ctx, &LicensePolicy::new("", org.id.as_str(), "default-policy", Some("desc".to_string()), Utc::now().naive_utc(), NaiveDate::from_ymd(2100, 1, 1).and_hms(0, 0, 0))).unwrap();
 
-        let org_employee_role = mgr.role_repository.create(&ctx, &Role::new("", realm.id.as_str(), org.id.as_str(), "org_employee", None, None)).unwrap();
-        let org_manager_role = mgr.role_repository.create(&ctx, &Role::new("", realm.id.as_str(), org.id.as_str(), "org_manager", None, None)).unwrap();
+        let org_employee_role = pm.role_repository.create(&ctx, &Role::new("", realm.id.as_str(), org.id.as_str(), "org_employee", None, None)).unwrap();
+        let org_manager_role = pm.role_repository.create(&ctx, &Role::new("", realm.id.as_str(), org.id.as_str(), "org_manager", None, None)).unwrap();
 
-        let _default_group_employee = mgr.role_repository.create(&ctx, &Role::new("", realm.id.as_str(), org.id.as_str(), "default_group_employee", None, None)).unwrap();
+        let _default_group_employee = pm.role_repository.create(&ctx, &Role::new("", realm.id.as_str(), org.id.as_str(), "default_group_employee", None, None)).unwrap();
 
-        let principal = mgr.principal_repository.create(&ctx, &Principal::new("", org.id.as_str(), "myusername", None)).unwrap();
-        let default_group = mgr.group_repository.create(&ctx, &Group::new("", org.id.as_str(), "default", Some("desc".to_string()), Some("parent".to_string()))).unwrap();
-        mgr.group_principal_repository.add_principal_to_group(&ctx, default_group.id.as_str(), principal.id.as_str()).unwrap();
+        let principal = pm.principal_repository.create(&ctx, &Principal::new("", org.id.as_str(), "myusername", None)).unwrap();
+        let default_group = pm.group_repository.create(&ctx, &Group::new("", org.id.as_str(), "default", Some("desc".to_string()), Some("parent".to_string()))).unwrap();
+        pm.group_principal_repository.add_principal_to_group(&ctx, default_group.id.as_str(), principal.id.as_str()).unwrap();
 
-        mgr.role_roleable_repository.add_principal_to_role(&ctx, org_manager_role.id.as_str(), principal.id.as_str(), "", Utc::now().naive_utc(), NaiveDate::from_ymd(2100, 1, 1).and_hms(0, 0, 0)).unwrap();
-        mgr.role_roleable_repository.add_group_to_role(&ctx, org_employee_role.id.as_str(), default_group.id.as_str(), "", Utc::now().naive_utc(), NaiveDate::from_ymd(2100, 1, 1).and_hms(0, 0, 0)).unwrap();
+        pm.role_roleable_repository.add_principal_to_role(&ctx, org_manager_role.id.as_str(), principal.id.as_str(), "", Utc::now().naive_utc(), NaiveDate::from_ymd(2100, 1, 1).and_hms(0, 0, 0)).unwrap();
+        pm.role_roleable_repository.add_group_to_role(&ctx, org_employee_role.id.as_str(), default_group.id.as_str(), "", Utc::now().naive_utc(), NaiveDate::from_ymd(2100, 1, 1).and_hms(0, 0, 0)).unwrap();
 
-        let resource = mgr.new_resource_with(&ctx, &realm, "report").unwrap();
-        let claim1 = mgr.claim_repository.create(&ctx, &Claim::new("", realm.id.as_str(), resource.id.as_str(), "READ", "Allow", None)).unwrap();
-        let claim2 = mgr.claim_repository.create(&ctx, &Claim::new("", realm.id.as_str(), resource.id.as_str(), "UPDATE", "Allow", None)).unwrap();
-        mgr.claim_claimable_repository.add_license_policy_to_claim(&ctx, license_policy.id.as_str(), claim1.id.as_str(), "", "", Utc::now().naive_utc(), NaiveDate::from_ymd(2100, 1, 1).and_hms(0, 0, 0)).unwrap();
-        mgr.claim_claimable_repository.add_license_policy_to_claim(&ctx, license_policy.id.as_str(), claim2.id.as_str(), "", "", Utc::now().naive_utc(), NaiveDate::from_ymd(2100, 1, 1).and_hms(0, 0, 0)).unwrap();
-        let loaded = mgr.get_principal(&ctx, realm.id.as_str(), principal.id.as_str()).unwrap();
+        let resource = pm.new_resource_with(&ctx, &realm, "report").unwrap();
+        let claim1 = pm.claim_repository.create(&ctx, &Claim::new("", realm.id.as_str(), resource.id.as_str(), "READ", "Allow", None)).unwrap();
+        let claim2 = pm.claim_repository.create(&ctx, &Claim::new("", realm.id.as_str(), resource.id.as_str(), "UPDATE", "Allow", None)).unwrap();
+        pm.claim_claimable_repository.add_license_policy_to_claim(&ctx, license_policy.id.as_str(), claim1.id.as_str(), "", "", Utc::now().naive_utc(), NaiveDate::from_ymd(2100, 1, 1).and_hms(0, 0, 0)).unwrap();
+        pm.claim_claimable_repository.add_license_policy_to_claim(&ctx, license_policy.id.as_str(), claim2.id.as_str(), "", "", Utc::now().naive_utc(), NaiveDate::from_ymd(2100, 1, 1).and_hms(0, 0, 0)).unwrap();
+        let loaded = pm.get_principal(&ctx, realm.id.as_str(), principal.id.as_str()).unwrap();
         assert_eq!(2, loaded.roles.len());
         assert_eq!(1, loaded.groups.len());
-        assert!(mgr.role_roleable_repository.delete_group_from_role(&ctx, org_employee_role.id.as_str(), default_group.id.as_str()).is_ok());
+        assert!(pm.role_roleable_repository.delete_group_from_role(&ctx, org_employee_role.id.as_str(), default_group.id.as_str()).is_ok());
     }
 
     #[test]
@@ -690,124 +690,124 @@ mod tests {
 
         // Initialize context and repository
         let ctx = SecurityContext::new("0".into(), "0".into());
-        let cf = DefaultDataSource::new();
-        let locator = RepositoryLocator::new(&cf);
-        let mgr = locator.new_persistence_manager();
-        mgr.clear();
+        let ds = DefaultDataSource::new();
+        let locator = RepositoryLocator::new(&ds);
+        let pm = locator.new_persistence_manager();
+        pm.clear();
         // Bootstrapping dependent data
 
         // Creating security realm
-        let realm = mgr.new_realm_with(&ctx, "banking").unwrap();
+        let realm = pm.new_realm_with(&ctx, "banking").unwrap();
 
         // Creating organization
-        let org = mgr.new_org_with(&ctx, "bank-of-flakes").unwrap();
+        let org = pm.new_org_with(&ctx, "bank-of-flakes").unwrap();
 
         // Creating Users
-        let tom = mgr.new_principal_with(&ctx, &org, "tom").unwrap();
-        let cassy = mgr.new_principal_with(&ctx, &org, "cassy").unwrap();
-        let ali = mgr.new_principal_with(&ctx, &org, "ali").unwrap();
-        let mike = mgr.new_principal_with(&ctx, &org, "mike").unwrap();
-        let larry = mgr.new_principal_with(&ctx, &org, "larry").unwrap();
+        let tom = pm.new_principal_with(&ctx, &org, "tom").unwrap();
+        let cassy = pm.new_principal_with(&ctx, &org, "cassy").unwrap();
+        let ali = pm.new_principal_with(&ctx, &org, "ali").unwrap();
+        let mike = pm.new_principal_with(&ctx, &org, "mike").unwrap();
+        let larry = pm.new_principal_with(&ctx, &org, "larry").unwrap();
 
         // Creating Roles
-        let employee = mgr.new_role_with(&ctx, &realm, &org, "Employee").unwrap();
-        let teller = mgr.new_role_with_parent(&ctx, &realm, &org, &employee, "Teller").unwrap();
-        let csr = mgr.new_role_with_parent(&ctx, &realm, &org, &teller, "CSR").unwrap();
-        let accountant = mgr.new_role_with_parent(&ctx, &realm, &org, &employee, "Accountant").unwrap();
-        let accountant_manager = mgr.new_role_with_parent(&ctx, &realm, &org, &accountant, "AccountingManager").unwrap();
-        let loan_officer = mgr.new_role_with_parent(&ctx, &realm, &org, &accountant_manager, "LoanOfficer").unwrap();
+        let employee = pm.new_role_with(&ctx, &realm, &org, "Employee").unwrap();
+        let teller = pm.new_role_with_parent(&ctx, &realm, &org, &employee, "Teller").unwrap();
+        let csr = pm.new_role_with_parent(&ctx, &realm, &org, &teller, "CSR").unwrap();
+        let accountant = pm.new_role_with_parent(&ctx, &realm, &org, &employee, "Accountant").unwrap();
+        let accountant_manager = pm.new_role_with_parent(&ctx, &realm, &org, &accountant, "AccountingManager").unwrap();
+        let loan_officer = pm.new_role_with_parent(&ctx, &realm, &org, &accountant_manager, "LoanOfficer").unwrap();
 
         // Creating Resources
-        let deposit_account = mgr.new_resource_with(&ctx, &realm, "DepositAccount").unwrap();
-        let loan_account = mgr.new_resource_with(&ctx, &realm, "LoanAccount").unwrap();
-        let general_ledger = mgr.new_resource_with(&ctx, &realm, "GeneralLedger").unwrap();
-        let posting_rules = mgr.new_resource_with(&ctx, &realm, "GeneralLedgerPostingRules").unwrap();
+        let deposit_account = pm.new_resource_with(&ctx, &realm, "DepositAccount").unwrap();
+        let loan_account = pm.new_resource_with(&ctx, &realm, "LoanAccount").unwrap();
+        let general_ledger = pm.new_resource_with(&ctx, &realm, "GeneralLedger").unwrap();
+        let posting_rules = pm.new_resource_with(&ctx, &realm, "GeneralLedgerPostingRules").unwrap();
 
         // Creating claims for resources
-        let cd_deposit = mgr.new_claim_with(&ctx, &realm, &deposit_account, "(CREATE|DELETE)").unwrap();
-        let ru_deposit = mgr.new_claim_with(&ctx, &realm, &deposit_account, "(READ|UPDATE)").unwrap();
+        let cd_deposit = pm.new_claim_with(&ctx, &realm, &deposit_account, "(CREATE|DELETE)").unwrap();
+        let ru_deposit = pm.new_claim_with(&ctx, &realm, &deposit_account, "(READ|UPDATE)").unwrap();
 
-        let cd_loan = mgr.new_claim_with(&ctx, &realm, &loan_account, "(CREATE|DELETE)").unwrap();
-        let ru_loan = mgr.new_claim_with(&ctx, &realm, &loan_account, "(READ|UPDATE)").unwrap();
+        let cd_loan = pm.new_claim_with(&ctx, &realm, &loan_account, "(CREATE|DELETE)").unwrap();
+        let ru_loan = pm.new_claim_with(&ctx, &realm, &loan_account, "(READ|UPDATE)").unwrap();
 
-        let rd_ledger = mgr.new_claim_with(&ctx, &realm, &general_ledger, "(READ|CREATE)").unwrap();
-        let r_glpr = mgr.new_claim_with(&ctx, &realm, &general_ledger, "(READ)").unwrap();
+        let rd_ledger = pm.new_claim_with(&ctx, &realm, &general_ledger, "(READ|CREATE|DELETE)").unwrap();
+        let r_glpr = pm.new_claim_with(&ctx, &realm, &general_ledger, "(READ)").unwrap();
 
-        let cud_glpr = mgr.new_claim_with(&ctx, &realm, &posting_rules, "(CREATE|UPDATE|DELETE)").unwrap();
+        let cud_glpr = pm.new_claim_with(&ctx, &realm, &posting_rules, "(CREATE|UPDATE|DELETE)").unwrap();
 
         // Mapping Principals and Claims to Roles
-        mgr.map_principal_to_role(&ctx, &tom, &teller).unwrap();
-        mgr.map_principal_to_role(&ctx, &cassy, &csr).unwrap();
-        mgr.map_principal_to_role(&ctx, &ali, &accountant).unwrap();
-        mgr.map_principal_to_role(&ctx, &mike, &accountant_manager).unwrap();
-        mgr.map_principal_to_role(&ctx, &larry, &loan_officer).unwrap();
+        pm.map_principal_to_role(&ctx, &tom, &teller).unwrap();
+        pm.map_principal_to_role(&ctx, &cassy, &csr).unwrap();
+        pm.map_principal_to_role(&ctx, &ali, &accountant).unwrap();
+        pm.map_principal_to_role(&ctx, &mike, &accountant_manager).unwrap();
+        pm.map_principal_to_role(&ctx, &larry, &loan_officer).unwrap();
 
         // Map claims to roles as follows:
-        mgr.map_role_to_claim(&ctx, &teller, &ru_deposit, "U.S.", r#"employeeRegion == "Midwest""#).unwrap();
-        mgr.map_role_to_claim(&ctx, &csr, &cd_deposit, "U.S.", r#"employeeRegion == "Midwest""#).unwrap();
-        mgr.map_role_to_claim(&ctx, &accountant, &rd_ledger, "U.S.", r#"employeeRegion == "Midwest" && ledgerYear == current_year()"#).unwrap();
-        mgr.map_role_to_claim(&ctx, &accountant, &ru_loan, "U.S.", r#"employeeRegion == "Midwest" && accountBlance < 10000"#).unwrap();
-        mgr.map_role_to_claim(&ctx, &accountant_manager, &cd_loan, "U.S.", r#"employeeRegion == "Midwest" && accountBlance < 10000"#).unwrap();
-        mgr.map_role_to_claim(&ctx, &accountant_manager, &r_glpr, "U.S.", r#"employeeRegion == "Midwest" && ledgerYear == current_year()"#).unwrap();
-        mgr.map_role_to_claim(&ctx, &loan_officer, &cud_glpr, "U.S.", r#"employeeRegion == "Midwest" && ledgerYear == current_year()"#).unwrap();
+        pm.map_role_to_claim(&ctx, &teller, &ru_deposit, "U.S.", r#"employeeRegion == "Midwest""#).unwrap();
+        pm.map_role_to_claim(&ctx, &csr, &cd_deposit, "U.S.", r#"employeeRegion == "Midwest""#).unwrap();
+        pm.map_role_to_claim(&ctx, &accountant, &rd_ledger, "U.S.", r#"employeeRegion == "Midwest" && ledgerYear == current_year()"#).unwrap();
+        pm.map_role_to_claim(&ctx, &accountant, &ru_loan, "U.S.", r#"employeeRegion == "Midwest" && accountBlance < 10000"#).unwrap();
+        pm.map_role_to_claim(&ctx, &accountant_manager, &cd_loan, "U.S.", r#"employeeRegion == "Midwest" && accountBlance < 10000"#).unwrap();
+        pm.map_role_to_claim(&ctx, &accountant_manager, &r_glpr, "U.S.", r#"employeeRegion == "Midwest" && ledgerYear == current_year()"#).unwrap();
+        pm.map_role_to_claim(&ctx, &loan_officer, &cud_glpr, "U.S.", r#"employeeRegion == "Midwest" && ledgerYear == current_year()"#).unwrap();
 
-        let security_mgr = SecurityManager::new(mgr);
+        let sm = SecurityManager::new(pm);
         // Tom, the teller should be able to READ DepositAccount with scope U.S when employeeRegion
         // == Midwest
         let mut req = PermissionRequest::new(realm.id.as_str(), tom.id.as_str(), ActionType::READ, "DepositAccount", "U.S.");
         req.context.add("employeeRegion", ValueWrapper::String("Midwest".to_string()));
-        assert_eq!(PermissionResponse::Allow, security_mgr.check(&req).unwrap());
+        assert_eq!(PermissionResponse::Allow, sm.check(&req).unwrap());
 
         // Tom, the teller should not be able to READ DepositAccount with scope U.S when employeeRegion
         // == Northeast
         let mut req = PermissionRequest::new(realm.id.as_str(), tom.id.as_str(), ActionType::READ, "DepositAccount", "U.S.");
         req.context.add("employeeRegion", ValueWrapper::String("Northeast".to_string()));
-        assert!(security_mgr.check(&req).is_err());
+        assert!(sm.check(&req).is_err());
 
         // Tom, the teller should not be able to DELETE DepositAccount with scope U.S when employeeRegion
         // == Midwest
         let mut req = PermissionRequest::new(realm.id.as_str(), tom.id.as_str(), ActionType::DELETE, "DepositAccount", "U.S.");
         req.context.add("employeeRegion", ValueWrapper::String("Midwest".to_string()));
-        assert!(security_mgr.check(&req).is_err());
+        assert!(sm.check(&req).is_err());
 
         // Cassy, the CSR should be able to DELETE DepositAccount with scope U.S when employeeRegion
         // == Midwest
-        let mgr = locator.new_persistence_manager();
+        let pm = locator.new_persistence_manager();
         let mut req = PermissionRequest::new(realm.id.as_str(), cassy.id.as_str(), ActionType::DELETE, "DepositAccount", "U.S.");
         req.context.add("employeeRegion", ValueWrapper::String("Midwest".to_string()));
-        assert_eq!(PermissionResponse::Allow, security_mgr.check(&req).unwrap());
+        assert_eq!(PermissionResponse::Allow, sm.check(&req).unwrap());
 
         // Cassy, the CSR should be able to DELETE DepositAccount with scope U.K when employeeRegion
         // == Midwest
         let mut req = PermissionRequest::new(realm.id.as_str(), cassy.id.as_str(), ActionType::DELETE, "DepositAccount", "U.K.");
         req.context.add("employeeRegion", ValueWrapper::String("Midwest".to_string()));
-        assert!(security_mgr.check(&req).is_err());
+        assert!(sm.check(&req).is_err());
 
         // Ali, the Accountant should be able to READ GeneralLedger with scope U.S when employeeRegion
         // == Midwest AND ledgerYear == current_year()
         let mut req = PermissionRequest::new(realm.id.as_str(), ali.id.as_str(), ActionType::READ, "GeneralLedger", "U.S.");
         req.context.add("employeeRegion", ValueWrapper::String("Midwest".to_string()));
         req.context.add("ledgerYear", ValueWrapper::Int(Utc::now().naive_utc().year() as i64));
-        assert_eq!(PermissionResponse::Allow, security_mgr.check(&req).unwrap());
+        assert_eq!(PermissionResponse::Allow, sm.check(&req).unwrap());
 
         // Ali, the Accountant should not be able to READ GeneralLedger with scope U.S when employeeRegion
         // == Midwest AND ledgerYear is in past
         req.context.add("ledgerYear", ValueWrapper::Int(2000));
-        assert!(security_mgr.check(&req).is_err());
+        assert!(sm.check(&req).is_err());
 
         // Ali, the Accountant should not be able to DELETE GeneralLedger with scope U.S when employeeRegion
         // == Midwest AND ledgerYear == current_year()
         let mut req = PermissionRequest::new(realm.id.as_str(), ali.id.as_str(), ActionType::DELETE, "GeneralLedger", "U.S.");
         req.context.add("employeeRegion", ValueWrapper::String("Midwest".to_string()));
         req.context.add("ledgerYear", ValueWrapper::Int(Utc::now().naive_utc().year() as i64));
-        assert!(security_mgr.check(&req).is_err());
+        assert!(sm.check(&req).is_err());
 
         // Mike, the Accountant Manager should be able to DELETE GeneralLedger with scope U.S when employeeRegion
         // == Midwest AND ledgerYear == current_year()
         let mut req = PermissionRequest::new(realm.id.as_str(), mike.id.as_str(), ActionType::CREATE, "GeneralLedger", "U.S.");
         req.context.add("employeeRegion", ValueWrapper::String("Midwest".to_string()));
         req.context.add("ledgerYear", ValueWrapper::Int(Utc::now().naive_utc().year() as i64));
-        assert_eq!(PermissionResponse::Allow, security_mgr.check(&req).unwrap());
+        assert_eq!(PermissionResponse::Allow, sm.check(&req).unwrap());
 
 
         // Mike, the Accountant Manager should not be able to post posting-rules of general-ledger with scope U.S 
@@ -816,7 +816,7 @@ mod tests {
         req.context.add("employeeRegion", ValueWrapper::String("Midwest".to_string()));
         req.context.add("ledgerYear", ValueWrapper::Int(Utc::now().naive_utc().year() as i64));
         req.context.add("accountBlance", ValueWrapper::Int(500));
-        assert!(security_mgr.check(&req).is_err());
+        assert!(sm.check(&req).is_err());
 
         // Larry, the Loan Officer should be able to post posting-rules of general-ledger with scope U.S 
         // when employeeRegion == Midwest AND ledgerYear == current_year()
@@ -824,25 +824,25 @@ mod tests {
         req.context.add("employeeRegion", ValueWrapper::String("Midwest".to_string()));
         req.context.add("ledgerYear", ValueWrapper::Int(Utc::now().naive_utc().year() as i64));
         req.context.add("accountBlance", ValueWrapper::Int(500));
-        assert_eq!(PermissionResponse::Allow, security_mgr.check(&req).unwrap());
+        assert_eq!(PermissionResponse::Allow, sm.check(&req).unwrap());
 
-        mgr.unmap_role_from_claim(&ctx, &teller, &ru_deposit).unwrap();
-        mgr.unmap_role_from_claim(&ctx, &csr, &cd_deposit).unwrap();
-        mgr.unmap_role_from_claim(&ctx, &accountant, &rd_ledger).unwrap();
-        mgr.unmap_role_from_claim(&ctx, &accountant, &ru_loan).unwrap();
-        mgr.unmap_role_from_claim(&ctx, &accountant_manager, &cd_loan).unwrap();
-        mgr.unmap_role_from_claim(&ctx, &accountant_manager, &r_glpr).unwrap();
-        mgr.unmap_role_from_claim(&ctx, &loan_officer, &cud_glpr).unwrap();
+        pm.unmap_role_from_claim(&ctx, &teller, &ru_deposit).unwrap();
+        pm.unmap_role_from_claim(&ctx, &csr, &cd_deposit).unwrap();
+        pm.unmap_role_from_claim(&ctx, &accountant, &rd_ledger).unwrap();
+        pm.unmap_role_from_claim(&ctx, &accountant, &ru_loan).unwrap();
+        pm.unmap_role_from_claim(&ctx, &accountant_manager, &cd_loan).unwrap();
+        pm.unmap_role_from_claim(&ctx, &accountant_manager, &r_glpr).unwrap();
+        pm.unmap_role_from_claim(&ctx, &loan_officer, &cud_glpr).unwrap();
 
-        mgr.unmap_role_from_claim(&ctx, &loan_officer, &cud_glpr).unwrap();
-        assert_eq!(7, mgr.claim_repository.get_claims_by_realm(&ctx, realm.id.as_str()).len());
-        assert_eq!(7, mgr.get_claims_by_policy(&ctx, realm.id.as_str(), "99").len());
+        pm.unmap_role_from_claim(&ctx, &loan_officer, &cud_glpr).unwrap();
+        assert_eq!(7, pm.claim_repository.get_claims_by_realm(&ctx, realm.id.as_str()).len());
+        assert_eq!(7, pm.get_claims_by_policy(&ctx, realm.id.as_str(), "99").len());
 
-        mgr.unmap_principal_from_role(&ctx, &tom, &teller).unwrap();
-        mgr.unmap_principal_from_role(&ctx, &cassy, &csr).unwrap();
-        mgr.unmap_principal_from_role(&ctx, &ali, &accountant).unwrap();
-        mgr.unmap_principal_from_role(&ctx, &mike, &accountant_manager).unwrap();
-        mgr.unmap_principal_from_role(&ctx, &larry, &loan_officer).unwrap();
+        pm.unmap_principal_from_role(&ctx, &tom, &teller).unwrap();
+        pm.unmap_principal_from_role(&ctx, &cassy, &csr).unwrap();
+        pm.unmap_principal_from_role(&ctx, &ali, &accountant).unwrap();
+        pm.unmap_principal_from_role(&ctx, &mike, &accountant_manager).unwrap();
+        pm.unmap_principal_from_role(&ctx, &larry, &loan_officer).unwrap();
     }
 
     #[test]
@@ -850,73 +850,73 @@ mod tests {
         init();
         // Initialize context and repository
         let ctx = SecurityContext::new("0".into(), "0".into());
-        let cf = DefaultDataSource::new();
-        let locator = RepositoryLocator::new(&cf);
-        let mgr = locator.new_persistence_manager();
-        mgr.clear();
+        let ds = DefaultDataSource::new();
+        let locator = RepositoryLocator::new(&ds);
+        let pm = locator.new_persistence_manager();
+        pm.clear();
         // Bootstrapping dependent data
 
         // Creating security realm
-        let realm = mgr.new_realm_with(&ctx, "hypatia").unwrap();
+        let realm = pm.new_realm_with(&ctx, "hypatia").unwrap();
 
         // Creating organization
-        let org = mgr.new_org_with(&ctx, "hypatia").unwrap();
+        let org = pm.new_org_with(&ctx, "hypatia").unwrap();
 
         // Creating Groups
-        let group_employee = mgr.new_group_with(&ctx, &org, "Employee").unwrap();
-        let group_manager = mgr.new_group_with_parent(&ctx, &org, &group_employee, "Manager").unwrap();
+        let group_employee = pm.new_group_with(&ctx, &org, "Employee").unwrap();
+        let group_manager = pm.new_group_with_parent(&ctx, &org, &group_employee, "Manager").unwrap();
 
         // Creating Users
-        let tom = mgr.new_principal_with(&ctx, &org, "tom").unwrap();
-        let mike = mgr.new_principal_with(&ctx, &org, "mike").unwrap();
+        let tom = pm.new_principal_with(&ctx, &org, "tom").unwrap();
+        let mike = pm.new_principal_with(&ctx, &org, "mike").unwrap();
 
         // Mapping users to groups
-        mgr.map_principal_to_group(&ctx, &tom, &group_employee).unwrap();
-        mgr.map_principal_to_group(&ctx, &mike, &group_employee).unwrap();
-        mgr.map_principal_to_group(&ctx, &mike, &group_manager).unwrap();
+        pm.map_principal_to_group(&ctx, &tom, &group_employee).unwrap();
+        pm.map_principal_to_group(&ctx, &mike, &group_employee).unwrap();
+        pm.map_principal_to_group(&ctx, &mike, &group_manager).unwrap();
 
         // Creating Roles
-        let employee = mgr.new_role_with(&ctx, &realm, &org, "Employee").unwrap();
-        let manager = mgr.new_role_with_parent(&ctx, &realm, &org, &employee, "Manager").unwrap();
+        let employee = pm.new_role_with(&ctx, &realm, &org, "Employee").unwrap();
+        let manager = pm.new_role_with_parent(&ctx, &realm, &org, &employee, "Manager").unwrap();
 
         // Creating Resources
-        let expense_report = mgr.new_resource_with(&ctx, &realm, "ExpenseReport").unwrap();
+        let expense_report = pm.new_resource_with(&ctx, &realm, "ExpenseReport").unwrap();
 
         // Creating claims for resources
-        let submit_report = mgr.new_claim_with(&ctx, &realm, &expense_report, "SUBMIT").unwrap();
-        let approve_report = mgr.new_claim_with(&ctx, &realm, &expense_report, "APPROVE").unwrap();
+        let submit_report = pm.new_claim_with(&ctx, &realm, &expense_report, "SUBMIT").unwrap();
+        let approve_report = pm.new_claim_with(&ctx, &realm, &expense_report, "APPROVE").unwrap();
 
         // Mapping Principals and Claims to Roles
-        mgr.map_group_to_role(&ctx, &group_employee, &employee, "").unwrap();
-        mgr.map_group_to_role(&ctx, &group_manager, &manager, "").unwrap();
+        pm.map_group_to_role(&ctx, &group_employee, &employee, "").unwrap();
+        pm.map_group_to_role(&ctx, &group_manager, &manager, "").unwrap();
 
         // Map claims to roles as follows:
-        mgr.map_role_to_claim(&ctx, &employee, &submit_report, "U.S.", r#"amount < 10000"#).unwrap();
-        mgr.map_role_to_claim(&ctx, &manager, &approve_report, "U.S.", r#"amount < 10000"#).unwrap();
+        pm.map_role_to_claim(&ctx, &employee, &submit_report, "U.S.", r#"amount < 10000"#).unwrap();
+        pm.map_role_to_claim(&ctx, &manager, &approve_report, "U.S.", r#"amount < 10000"#).unwrap();
 
-        let security_mgr = SecurityManager::new(mgr);
+        let sm = SecurityManager::new(pm);
         // Tom should be able to submit report
         let mut req = PermissionRequest::new(realm.id.as_str(), tom.id.as_str(), ActionType::SUBMIT, "ExpenseReport", "U.S.");
         req.context.add("amount", ValueWrapper::Int(1000));
-        assert_eq!(PermissionResponse::Allow, security_mgr.check(&req).unwrap());
+        assert_eq!(PermissionResponse::Allow, sm.check(&req).unwrap());
 
         // Tom should not be able to approve report
         let mut req = PermissionRequest::new(realm.id.as_str(), tom.id.as_str(), ActionType::APPROVE, "ExpenseReport", "U.S.");
         req.context.add("amount", ValueWrapper::Int(1000));
-        assert!(security_mgr.check(&req).is_err());
+        assert!(sm.check(&req).is_err());
 
         // Mike should be able to approve report
         let mut req = PermissionRequest::new(realm.id.as_str(), mike.id.as_str(), ActionType::APPROVE, "ExpenseReport", "U.S.");
         req.context.add("amount", ValueWrapper::Int(1000));
-        assert_eq!(PermissionResponse::Allow, security_mgr.check(&req).unwrap());
+        assert_eq!(PermissionResponse::Allow, sm.check(&req).unwrap());
 
-        let mgr = locator.new_persistence_manager();
-        mgr.unmap_principal_from_group(&ctx, &tom, &group_employee).unwrap();
-        mgr.unmap_principal_from_group(&ctx, &mike, &group_employee).unwrap();
-        mgr.unmap_principal_from_group(&ctx, &mike, &group_manager).unwrap();
+        let pm = locator.new_persistence_manager();
+        pm.unmap_principal_from_group(&ctx, &tom, &group_employee).unwrap();
+        pm.unmap_principal_from_group(&ctx, &mike, &group_employee).unwrap();
+        pm.unmap_principal_from_group(&ctx, &mike, &group_manager).unwrap();
 
-        mgr.unmap_group_from_role(&ctx, &group_employee, &employee).unwrap();
-        mgr.unmap_group_from_role(&ctx, &group_manager, &manager).unwrap();
+        pm.unmap_group_from_role(&ctx, &group_employee, &employee).unwrap();
+        pm.unmap_group_from_role(&ctx, &group_manager, &manager).unwrap();
     }
 
     #[test]
@@ -924,52 +924,52 @@ mod tests {
         init();
         // Initialize context and repository
         let ctx = SecurityContext::new("0".into(), "0".into());
-        let cf = DefaultDataSource::new();
-        let locator = RepositoryLocator::new(&cf);
-        let mgr = locator.new_persistence_manager();
-        mgr.clear();
+        let ds = DefaultDataSource::new();
+        let locator = RepositoryLocator::new(&ds);
+        let pm = locator.new_persistence_manager();
+        pm.clear();
         // Bootstrapping dependent data
 
         // Creating security realm
-        let realm = mgr.new_realm_with(&ctx, "rainier").unwrap();
+        let realm = pm.new_realm_with(&ctx, "rainier").unwrap();
 
         // Creating organization
-        let org = mgr.new_org_with(&ctx, "rainier").unwrap();
+        let org = pm.new_org_with(&ctx, "rainier").unwrap();
 
         // Creating Users
-        let tom = mgr.new_principal_with(&ctx, &org, "tom").unwrap();
-        let mike = mgr.new_principal_with(&ctx, &org, "mike").unwrap();
+        let tom = pm.new_principal_with(&ctx, &org, "tom").unwrap();
+        let mike = pm.new_principal_with(&ctx, &org, "mike").unwrap();
 
         // Creating Resources
-        let expense_report = mgr.new_resource_with(&ctx, &realm, "ExpenseReport").unwrap();
+        let expense_report = pm.new_resource_with(&ctx, &realm, "ExpenseReport").unwrap();
 
         // Creating claims for resources
-        let submit_report = mgr.new_claim_with(&ctx, &realm, &expense_report, "SUBMIT").unwrap();
-        let approve_report = mgr.new_claim_with(&ctx, &realm, &expense_report, "APPROVE").unwrap();
+        let submit_report = pm.new_claim_with(&ctx, &realm, &expense_report, "SUBMIT").unwrap();
+        let approve_report = pm.new_claim_with(&ctx, &realm, &expense_report, "APPROVE").unwrap();
 
         // Map claims to roles as follows:
-        mgr.map_principal_to_claim(&ctx, &tom, &submit_report, "U.S.", r#"amount < 10000"#).unwrap();
-        mgr.map_principal_to_claim(&ctx, &mike, &approve_report, "U.S.", r#"amount < 10000"#).unwrap();
+        pm.map_principal_to_claim(&ctx, &tom, &submit_report, "U.S.", r#"amount < 10000"#).unwrap();
+        pm.map_principal_to_claim(&ctx, &mike, &approve_report, "U.S.", r#"amount < 10000"#).unwrap();
 
-        let security_mgr = SecurityManager::new(mgr);
+        let sm = SecurityManager::new(pm);
         // Tom should be able to submit report
         let mut req = PermissionRequest::new(realm.id.as_str(), tom.id.as_str(), ActionType::SUBMIT, "ExpenseReport", "U.S.");
         req.context.add("amount", ValueWrapper::Int(1000));
-        assert_eq!(PermissionResponse::Allow, security_mgr.check(&req).unwrap());
+        assert_eq!(PermissionResponse::Allow, sm.check(&req).unwrap());
 
         // Tom should not be able to approve report
         let mut req = PermissionRequest::new(realm.id.as_str(), tom.id.as_str(), ActionType::APPROVE, "ExpenseReport", "U.S.");
         req.context.add("amount", ValueWrapper::Int(1000));
-        assert!(security_mgr.check(&req).is_err());
+        assert!(sm.check(&req).is_err());
 
         // Mike should be able to approve report
         let mut req = PermissionRequest::new(realm.id.as_str(), mike.id.as_str(), ActionType::APPROVE, "ExpenseReport", "U.S.");
         req.context.add("amount", ValueWrapper::Int(1000));
-        assert_eq!(PermissionResponse::Allow, security_mgr.check(&req).unwrap());
+        assert_eq!(PermissionResponse::Allow, sm.check(&req).unwrap());
 
-        let mgr = locator.new_persistence_manager();
-        mgr.unmap_principal_from_claim(&ctx, &tom, &submit_report).unwrap();
-        mgr.unmap_principal_from_claim(&ctx, &mike, &approve_report).unwrap();
+        let pm = locator.new_persistence_manager();
+        pm.unmap_principal_from_claim(&ctx, &tom, &submit_report).unwrap();
+        pm.unmap_principal_from_claim(&ctx, &mike, &approve_report).unwrap();
     }
 
     #[test]
@@ -977,71 +977,71 @@ mod tests {
         init();
         // Initialize context and repository
         let ctx = SecurityContext::new("0".into(), "0".into());
-        let cf = DefaultDataSource::new();
-        let locator = RepositoryLocator::new(&cf);
-        let mgr = locator.new_persistence_manager();
-        mgr.clear();
+        let ds = DefaultDataSource::new();
+        let locator = RepositoryLocator::new(&ds);
+        let pm = locator.new_persistence_manager();
+        pm.clear();
         // Bootstrapping dependent data
 
         // Creating security realm
-        let realm = mgr.new_realm_with(&ctx, "ada").unwrap();
+        let realm = pm.new_realm_with(&ctx, "ada").unwrap();
 
         // Creating organization
-        let org = mgr.new_org_with(&ctx, "ada").unwrap();
+        let org = pm.new_org_with(&ctx, "ada").unwrap();
 
         // Creating Users
-        let tom = mgr.new_principal_with(&ctx, &org, "tom").unwrap();
-        let mike = mgr.new_principal_with(&ctx, &org, "mike").unwrap();
+        let tom = pm.new_principal_with(&ctx, &org, "tom").unwrap();
+        let mike = pm.new_principal_with(&ctx, &org, "mike").unwrap();
 
         // Creating Roles
-        let customer = mgr.new_role_with(&ctx, &realm, &org, "Customer").unwrap();
-        let beta_customer = mgr.new_role_with_parent(&ctx, &realm, &org, &customer, "BetaCustomer").unwrap();
+        let customer = pm.new_role_with(&ctx, &realm, &org, "Customer").unwrap();
+        let beta_customer = pm.new_role_with_parent(&ctx, &realm, &org, &customer, "BetaCustomer").unwrap();
 
         // Creating Resources
-        let feature = mgr.new_resource_with(&ctx, &realm, "Feature").unwrap();
+        let feature = pm.new_resource_with(&ctx, &realm, "Feature").unwrap();
 
         // Creating claims for resources
-        let view = mgr.new_claim_with(&ctx, &realm, &feature, "VIEW").unwrap();
+        let view = pm.new_claim_with(&ctx, &realm, &feature, "VIEW").unwrap();
 
         // Mapping Principals and Claims to Roles
-        mgr.map_principal_to_role(&ctx, &tom, &customer).unwrap();
-        mgr.map_principal_to_role(&ctx, &mike, &beta_customer).unwrap();
+        pm.map_principal_to_role(&ctx, &tom, &customer).unwrap();
+        pm.map_principal_to_role(&ctx, &mike, &beta_customer).unwrap();
 
         // Map claims to roles as follows:
-        mgr.map_role_to_claim(&ctx, &customer, &view, "UI::Flag::BasicReport", r#"geo_distance_km(customer_lat, customer_lon, 47.620422, -122.349358) < 100"#).unwrap();
-        mgr.map_role_to_claim(&ctx, &beta_customer, &view, "UI::Flag::AdvancedReport", r#"geo_distance_km(customer_lat, customer_lon, 47.620422, -122.349358) < 200"#).unwrap();
+        pm.map_role_to_claim(&ctx, &customer, &view, "UI::Flag::BasicReport", r#"geo_distance_km(customer_lat, customer_lon, 47.620422, -122.349358) < 100"#).unwrap();
+        pm.map_role_to_claim(&ctx, &beta_customer, &view, "UI::Flag::AdvancedReport", r#"geo_distance_km(customer_lat, customer_lon, 47.620422, -122.349358) < 200"#).unwrap();
 
-        let security_mgr = SecurityManager::new(mgr);
+        let sm = SecurityManager::new(pm);
 
         // Tom should be able to view basic report if he lives close to Seattle
         let mut req = PermissionRequest::new(realm.id.as_str(), tom.id.as_str(), ActionType::VIEW, "Feature", "UI::Flag::BasicReport");
         req.context.add("customer_lat", ValueWrapper::Float(46.879967));
         req.context.add("customer_lon", ValueWrapper::Float(-121.726906));
-        assert_eq!(PermissionResponse::Allow, security_mgr.check(&req).unwrap());
+        assert_eq!(PermissionResponse::Allow, sm.check(&req).unwrap());
 
         // Tom should not be able to view basic report if he lives far from Seattle
         let mut req = PermissionRequest::new(realm.id.as_str(), tom.id.as_str(), ActionType::VIEW, "Feature", "UI::Flag::BasicReport");
         req.context.add("customer_lat", ValueWrapper::Float(37.3230));
         req.context.add("customer_lon", ValueWrapper::Float(-122.0322));
-        assert!(security_mgr.check(&req).is_err());
+        assert!(sm.check(&req).is_err());
 
         // Tom should not be able to view advanced report
         let mut req = PermissionRequest::new(realm.id.as_str(), tom.id.as_str(), ActionType::VIEW, "Feature", "UI::Flag::AdvancedReport");
         req.context.add("customer_lat", ValueWrapper::Float(46.879967));
         req.context.add("customer_lon", ValueWrapper::Float(-121.726906));
-        assert!(security_mgr.check(&req).is_err());
+        assert!(sm.check(&req).is_err());
 
         // Mike should be able to view advanced report
         let mut req = PermissionRequest::new(realm.id.as_str(), mike.id.as_str(), ActionType::VIEW, "Feature", "UI::Flag::AdvancedReport");
         req.context.add("customer_lat", ValueWrapper::Float(46.879967));
         req.context.add("customer_lon", ValueWrapper::Float(-121.726906));
-        assert_eq!(PermissionResponse::Allow, security_mgr.check(&req).unwrap());
+        assert_eq!(PermissionResponse::Allow, sm.check(&req).unwrap());
 
         // Mike should not be able to view advanced report if he lives far from Seattle
         let mut req = PermissionRequest::new(realm.id.as_str(), mike.id.as_str(), ActionType::VIEW, "Feature", "UI::Flag::AdvancedReport");
         req.context.add("customer_lat", ValueWrapper::Float(37.3230));
         req.context.add("customer_lon", ValueWrapper::Float(-122.0322));
-        assert!(security_mgr.check(&req).is_err());
+        assert!(sm.check(&req).is_err());
     }
 
     #[test]
@@ -1049,53 +1049,53 @@ mod tests {
         init();
         // Initialize context and repository
         let ctx = SecurityContext::new("0".into(), "0".into());
-        let cf = DefaultDataSource::new();
-        let locator = RepositoryLocator::new(&cf);
-        let mgr = locator.new_persistence_manager();
-        mgr.clear();
+        let ds = DefaultDataSource::new();
+        let locator = RepositoryLocator::new(&ds);
+        let pm = locator.new_persistence_manager();
+        pm.clear();
         // Bootstrapping dependent data
 
         // Creating security realm
-        let realm = mgr.new_realm_with(&ctx, "dada").unwrap();
+        let realm = pm.new_realm_with(&ctx, "dada").unwrap();
 
         // Creating organization
-        let org = mgr.new_org_with(&ctx, "dada").unwrap();
+        let org = pm.new_org_with(&ctx, "dada").unwrap();
 
         // Creating Users
-        let tom = mgr.new_principal_with(&ctx, &org, "tom").unwrap();
-        let mike = mgr.new_principal_with(&ctx, &org, "mike").unwrap();
+        let tom = pm.new_principal_with(&ctx, &org, "tom").unwrap();
+        let mike = pm.new_principal_with(&ctx, &org, "mike").unwrap();
 
         // Creating Roles
-        let customer = mgr.new_role_with(&ctx, &realm, &org, "Customer").unwrap();
-        let beta_customer = mgr.new_role_with_parent(&ctx, &realm, &org, &customer, "BetaCustomer").unwrap();
+        let customer = pm.new_role_with(&ctx, &realm, &org, "Customer").unwrap();
+        let beta_customer = pm.new_role_with_parent(&ctx, &realm, &org, &customer, "BetaCustomer").unwrap();
 
         // Creating Resources
-        let data = mgr.new_resource_with(&ctx, &realm, "Data").unwrap();
+        let data = pm.new_resource_with(&ctx, &realm, "Data").unwrap();
 
         // Creating claims for resources
-        let view = mgr.new_claim_with(&ctx, &realm, &data, "VIEW").unwrap();
+        let view = pm.new_claim_with(&ctx, &realm, &data, "VIEW").unwrap();
 
         // Mapping Principals and Claims to Roles
-        mgr.map_principal_to_role(&ctx, &tom, &customer).unwrap();
-        mgr.map_principal_to_role(&ctx, &mike, &beta_customer).unwrap();
+        pm.map_principal_to_role(&ctx, &tom, &customer).unwrap();
+        pm.map_principal_to_role(&ctx, &mike, &beta_customer).unwrap();
 
         // Map claims to roles as follows:
-        mgr.map_role_to_claim(&ctx, &customer, &view, "Report::Summary", "").unwrap();
-        mgr.map_role_to_claim(&ctx, &beta_customer, &view, "Report::Details", "").unwrap();
+        pm.map_role_to_claim(&ctx, &customer, &view, "Report::Summary", "").unwrap();
+        pm.map_role_to_claim(&ctx, &beta_customer, &view, "Report::Details", "").unwrap();
 
-        let security_mgr = SecurityManager::new(mgr);
+        let sm = SecurityManager::new(pm);
 
         // Tom should be able to view summary
         let req = PermissionRequest::new(realm.id.as_str(), tom.id.as_str(), ActionType::VIEW, "Data", "Report::Summary");
-        assert_eq!(PermissionResponse::Allow, security_mgr.check(&req).unwrap());
+        assert_eq!(PermissionResponse::Allow, sm.check(&req).unwrap());
 
         // Tom should not be able to view details
         let req = PermissionRequest::new(realm.id.as_str(), tom.id.as_str(), ActionType::VIEW, "Data", "Report::Details");
-        assert!(security_mgr.check(&req).is_err());
+        assert!(sm.check(&req).is_err());
 
         // Mike should be able to view details
         let req = PermissionRequest::new(realm.id.as_str(), mike.id.as_str(), ActionType::VIEW, "Data", "Report::Details");
-        assert_eq!(PermissionResponse::Allow, security_mgr.check(&req).unwrap());
+        assert_eq!(PermissionResponse::Allow, sm.check(&req).unwrap());
     }
 
     #[test]
@@ -1103,67 +1103,67 @@ mod tests {
         init();
         // Initialize context and repository
         let ctx = SecurityContext::new("0".into(), "0".into());
-        let cf = DefaultDataSource::new();
-        let locator = RepositoryLocator::new(&cf);
-        let mgr = locator.new_persistence_manager();
-        mgr.clear();
+        let ds = DefaultDataSource::new();
+        let locator = RepositoryLocator::new(&ds);
+        let pm = locator.new_persistence_manager();
+        pm.clear();
         // Bootstrapping dependent data
 
         // Creating security realm
-        let realm = mgr.new_realm_with(&ctx, "curie").unwrap();
+        let realm = pm.new_realm_with(&ctx, "curie").unwrap();
 
         // Creating organization
-        let freemium_org = mgr.new_org_with(&ctx, "Freeloader").unwrap();
-        let paid_org = mgr.new_org_with(&ctx, "Moneymaker").unwrap();
+        let freemium_org = pm.new_org_with(&ctx, "Freeloader").unwrap();
+        let paid_org = pm.new_org_with(&ctx, "Moneymaker").unwrap();
 
         // Create license policies
-        let freemium_policy = mgr.new_license_policy(&ctx, &freemium_org).unwrap();
-        let paid_policy = mgr.new_license_policy(&ctx, &paid_org).unwrap();
+        let freemium_policy = pm.new_license_policy(&ctx, &freemium_org).unwrap();
+        let paid_policy = pm.new_license_policy(&ctx, &paid_org).unwrap();
 
         // Creating Users
-        let freemium_frank = mgr.new_principal_with(&ctx, &freemium_org, "frank").unwrap();
-        let money_matt = mgr.new_principal_with(&ctx, &paid_org, "matt").unwrap();
+        let freemium_frank = pm.new_principal_with(&ctx, &freemium_org, "frank").unwrap();
+        let money_matt = pm.new_principal_with(&ctx, &paid_org, "matt").unwrap();
 
         // Creating Roles
-        let customer = mgr.new_role_with(&ctx, &realm, &freemium_org, "Customer").unwrap();
-        let paid_customer = mgr.new_role_with(&ctx, &realm, &paid_org, "PaidCustomer").unwrap();
+        let customer = pm.new_role_with(&ctx, &realm, &freemium_org, "Customer").unwrap();
+        let paid_customer = pm.new_role_with(&ctx, &realm, &paid_org, "PaidCustomer").unwrap();
 
         // Creating Resources
-        let feature = mgr.new_resource_with(&ctx, &realm, "Feature").unwrap();
+        let feature = pm.new_resource_with(&ctx, &realm, "Feature").unwrap();
 
         // Creating claims for resources
-        let view = mgr.new_claim_with(&ctx, &realm, &feature, "VIEW").unwrap();
+        let view = pm.new_claim_with(&ctx, &realm, &feature, "VIEW").unwrap();
 
         // Mapping Principals and Claims to Roles
-        mgr.map_principal_to_role(&ctx, &freemium_frank, &customer).unwrap();
-        mgr.map_principal_to_role(&ctx, &money_matt, &customer).unwrap();
-        mgr.map_principal_to_role(&ctx, &money_matt, &paid_customer).unwrap();
+        pm.map_principal_to_role(&ctx, &freemium_frank, &customer).unwrap();
+        pm.map_principal_to_role(&ctx, &money_matt, &customer).unwrap();
+        pm.map_principal_to_role(&ctx, &money_matt, &paid_customer).unwrap();
 
         // Map claims to policies as follows:
-        mgr.map_license_policy_to_claim(&ctx, &freemium_policy, &view, "UI::Flag::BasicReport", "").unwrap();
-        mgr.map_license_policy_to_claim(&ctx, &paid_policy, &view, "UI::Flag::AdvancedReport", "").unwrap();
+        pm.map_license_policy_to_claim(&ctx, &freemium_policy, &view, "UI::Flag::BasicReport", "").unwrap();
+        pm.map_license_policy_to_claim(&ctx, &paid_policy, &view, "UI::Flag::AdvancedReport", "").unwrap();
 
         // Map claims to roles as follows:
-        mgr.map_role_to_claim(&ctx, &customer, &view, "UI::Flag::BasicReport", "").unwrap();
-        mgr.map_role_to_claim(&ctx, &paid_customer, &view, "UI::Flag::AdvancedReport", "").unwrap();
+        pm.map_role_to_claim(&ctx, &customer, &view, "UI::Flag::BasicReport", "").unwrap();
+        pm.map_role_to_claim(&ctx, &paid_customer, &view, "UI::Flag::AdvancedReport", "").unwrap();
 
-        let security_mgr = SecurityManager::new(mgr);
+        let sm = SecurityManager::new(pm);
 
         // Frank should be able to view basic report
         let req = PermissionRequest::new(realm.id.as_str(), freemium_frank.id.as_str(), ActionType::VIEW, "Feature", "UI::Flag::BasicReport");
-        assert_eq!(PermissionResponse::Allow, security_mgr.check(&req).unwrap());
+        assert_eq!(PermissionResponse::Allow, sm.check(&req).unwrap());
 
-        let mgr = locator.new_persistence_manager();
+        let pm = locator.new_persistence_manager();
         // Frank should not be able to view advanced report
         let req = PermissionRequest::new(realm.id.as_str(), freemium_frank.id.as_str(), ActionType::VIEW, "Feature", "UI::Flag::AdvancedReport");
-        assert!(security_mgr.check(&req).is_err());
+        assert!(sm.check(&req).is_err());
 
         // Matt should be able to view advanced report
         let req = PermissionRequest::new(realm.id.as_str(), money_matt.id.as_str(), ActionType::VIEW, "Feature", "UI::Flag::AdvancedReport");
-        assert_eq!(PermissionResponse::Allow, security_mgr.check(&req).unwrap());
+        assert_eq!(PermissionResponse::Allow, sm.check(&req).unwrap());
 
-        mgr.unmap_license_policy_from_claim(&ctx, &freemium_policy, &view).unwrap();
-        mgr.unmap_license_policy_from_claim(&ctx, &paid_policy, &view).unwrap();
+        pm.unmap_license_policy_from_claim(&ctx, &freemium_policy, &view).unwrap();
+        pm.unmap_license_policy_from_claim(&ctx, &paid_policy, &view).unwrap();
     }
 
     #[test]
@@ -1171,85 +1171,85 @@ mod tests {
         init();
         // Initialize context and repository
         let ctx = SecurityContext::new("0".into(), "0".into());
-        let cf = DefaultDataSource::new();
-        let locator = RepositoryLocator::new(&cf);
-        let mgr = locator.new_persistence_manager();
-        mgr.clear();
+        let ds = DefaultDataSource::new();
+        let locator = RepositoryLocator::new(&ds);
+        let pm = locator.new_persistence_manager();
+        pm.clear();
         // Bootstrapping dependent data
 
         // Creating security realm
-        let realm = mgr.new_realm_with(&ctx, "SeeEye").unwrap();
+        let realm = pm.new_realm_with(&ctx, "SeeEye").unwrap();
 
         // Creating organization
-        let org = mgr.new_org_with(&ctx, "SeeEye").unwrap();
+        let org = pm.new_org_with(&ctx, "SeeEye").unwrap();
 
         // Create license policies
-        let policy = mgr.new_license_policy(&ctx, &org).unwrap();
+        let policy = pm.new_license_policy(&ctx, &org).unwrap();
 
         // Creating Users
-        let dave = mgr.new_principal_with(&ctx, &org, "dave").unwrap();
-        let qari = mgr.new_principal_with(&ctx, &org, "qari").unwrap();
-        let ali = mgr.new_principal_with(&ctx, &org, "ali").unwrap();
+        let dave = pm.new_principal_with(&ctx, &org, "dave").unwrap();
+        let qari = pm.new_principal_with(&ctx, &org, "qari").unwrap();
+        let ali = pm.new_principal_with(&ctx, &org, "ali").unwrap();
 
         // Creating Roles
-        let developer = mgr.new_role_with(&ctx, &realm, &org, "Developer").unwrap();
-        let qa = mgr.new_role_with(&ctx, &realm, &org, "QA").unwrap();
-        let admin = mgr.new_role_with_parent(&ctx, &realm, &org, &developer, "Admin").unwrap();
+        let developer = pm.new_role_with(&ctx, &realm, &org, "Developer").unwrap();
+        let qa = pm.new_role_with(&ctx, &realm, &org, "QA").unwrap();
+        let admin = pm.new_role_with_parent(&ctx, &realm, &org, &developer, "Admin").unwrap();
 
         // Creating Resources
-        let app = mgr.new_resource_with(&ctx, &realm, "App").unwrap();
+        let app = pm.new_resource_with(&ctx, &realm, "App").unwrap();
 
         // Creating claims for resources
-        let submit_view = mgr.new_claim_with(&ctx, &realm, &app, "(SUBMIT|VIEW)").unwrap();
-        let view = mgr.new_claim_with(&ctx, &realm, &app, "VIEW").unwrap();
-        let create_delete = mgr.new_claim_with(&ctx, &realm, &app, "(CREATE|DELETE)").unwrap();
+        let submit_view = pm.new_claim_with(&ctx, &realm, &app, "(SUBMIT|VIEW)").unwrap();
+        let view = pm.new_claim_with(&ctx, &realm, &app, "VIEW").unwrap();
+        let create_delete = pm.new_claim_with(&ctx, &realm, &app, "(CREATE|DELETE)").unwrap();
 
         // Mapping Principals and Claims to Roles
-        mgr.map_principal_to_role(&ctx, &dave, &developer).unwrap();
-        mgr.map_principal_to_role(&ctx, &qari, &qa).unwrap();
-        mgr.map_principal_to_role(&ctx, &ali, &admin).unwrap();
+        pm.map_principal_to_role(&ctx, &dave, &developer).unwrap();
+        pm.map_principal_to_role(&ctx, &qari, &qa).unwrap();
+        pm.map_principal_to_role(&ctx, &ali, &admin).unwrap();
 
         // Map claims to policies as follows:
-        mgr.map_license_policy_to_claim(&ctx, &policy, &submit_view, "com.xyz.app", "appSize < 1000").unwrap();
-        mgr.map_license_policy_to_claim(&ctx, &policy, &view, "com.xyz.app", "appSize < 1000").unwrap();
-        mgr.map_license_policy_to_claim(&ctx, &policy, &create_delete, "com.xyz.app", "").unwrap();
+        pm.map_license_policy_to_claim(&ctx, &policy, &submit_view, "com.xyz.app", "appSize < 1000").unwrap();
+        pm.map_license_policy_to_claim(&ctx, &policy, &view, "com.xyz.app", "appSize < 1000").unwrap();
+        pm.map_license_policy_to_claim(&ctx, &policy, &create_delete, "com.xyz.app", "").unwrap();
 
         // Map claims to roles as follows:
-        mgr.map_role_to_claim(&ctx, &developer, &submit_view, "com.xyz.app", "appSize < 1000").unwrap();
-        mgr.map_role_to_claim(&ctx, &qa, &view, "com.xyz.app", "appSize < 1000").unwrap();
-        mgr.map_role_to_claim(&ctx, &admin, &create_delete, "com.xyz.app", "").unwrap();
+        pm.map_role_to_claim(&ctx, &developer, &submit_view, "com.xyz.app", "appSize < 1000").unwrap();
+        pm.map_role_to_claim(&ctx, &qa, &view, "com.xyz.app", "appSize < 1000").unwrap();
+        pm.map_role_to_claim(&ctx, &admin, &create_delete, "com.xyz.app", "").unwrap();
 
-        let security_mgr = SecurityManager::new(mgr);
+        let sm = SecurityManager::new(pm);
 
         // Dave should be able to submit app
         let mut req = PermissionRequest::new(realm.id.as_str(), dave.id.as_str(), ActionType::SUBMIT, "App", "com.xyz.app");
         req.context.add("appSize", ValueWrapper::Int(500));
-        assert_eq!(PermissionResponse::Allow, security_mgr.check(&req).unwrap());
+        assert_eq!(PermissionResponse::Allow, sm.check(&req).unwrap());
 
         // Qari should be able to view app
         let mut req = PermissionRequest::new(realm.id.as_str(), qari.id.as_str(), ActionType::VIEW, "App", "com.xyz.app");
         req.context.add("appSize", ValueWrapper::Int(500));
-        assert_eq!(PermissionResponse::Allow, security_mgr.check(&req).unwrap());
+        assert_eq!(PermissionResponse::Allow, sm.check(&req).unwrap());
 
         // Qari should not be able to create app
         let mut req = PermissionRequest::new(realm.id.as_str(), qari.id.as_str(), ActionType::CREATE, "App", "com.xyz.app");
         req.context.add("appSize", ValueWrapper::Int(500));
-        assert!(security_mgr.check(&req).is_err());
+        assert!(sm.check(&req).is_err());
 
         // Ali should be able to create app
         let mut req = PermissionRequest::new(realm.id.as_str(), ali.id.as_str(), ActionType::CREATE, "App", "com.xyz.app");
         req.context.add("appSize", ValueWrapper::Int(500));
-        assert_eq!(PermissionResponse::Allow, security_mgr.check(&req).unwrap());
+        assert_eq!(PermissionResponse::Allow, sm.check(&req).unwrap());
 
         // Ali should be able to submit app
         let mut req = PermissionRequest::new(realm.id.as_str(), ali.id.as_str(), ActionType::SUBMIT, "App", "com.xyz.app");
         req.context.add("appSize", ValueWrapper::Int(500));
-        assert_eq!(PermissionResponse::Allow, security_mgr.check(&req).unwrap());
+        assert_eq!(PermissionResponse::Allow, sm.check(&req).unwrap());
 
         // Ali should not be able to submit app with large app
         let mut req = PermissionRequest::new(realm.id.as_str(), ali.id.as_str(), ActionType::SUBMIT, "App", "com.xyz.app");
         req.context.add("appSize", ValueWrapper::Int(5000));
-        assert!(security_mgr.check(&req).is_err());
+        assert!(sm.check(&req).is_err());
     }
 
     #[test]
@@ -1257,82 +1257,82 @@ mod tests {
         init();
         // Initialize context and repository
         let ctx = SecurityContext::new("0".into(), "0".into());
-        let cf = DefaultDataSource::new();
-        let locator = RepositoryLocator::new(&cf);
-        let mgr = locator.new_persistence_manager();
-        mgr.clear();
+        let ds = DefaultDataSource::new();
+        let locator = RepositoryLocator::new(&ds);
+        let pm = locator.new_persistence_manager();
+        pm.clear();
         // Bootstrapping dependent data
 
         // Creating security realm
-        let realm = mgr.new_realm_with(&ctx, "JobGrid").unwrap();
+        let realm = pm.new_realm_with(&ctx, "JobGrid").unwrap();
 
         // Creating organization
-        let abc_corp = mgr.new_org_with(&ctx, "ABC").unwrap();
-        let xyz_corp = mgr.new_org_with(&ctx, "XYZ").unwrap();
+        let abc_corp = pm.new_org_with(&ctx, "ABC").unwrap();
+        let xyz_corp = pm.new_org_with(&ctx, "XYZ").unwrap();
 
         // Create license policies
-        let abc_policy = mgr.new_license_policy(&ctx, &abc_corp).unwrap();
-        let xyz_policy = mgr.new_license_policy(&ctx, &xyz_corp).unwrap();
+        let abc_policy = pm.new_license_policy(&ctx, &abc_corp).unwrap();
+        let xyz_policy = pm.new_license_policy(&ctx, &xyz_corp).unwrap();
 
         // Creating Users
-        let abc_dave = mgr.new_principal_with(&ctx, &abc_corp, "dave").unwrap();
-        let abc_ali = mgr.new_principal_with(&ctx, &abc_corp, "ali").unwrap();
+        let abc_dave = pm.new_principal_with(&ctx, &abc_corp, "dave").unwrap();
+        let abc_ali = pm.new_principal_with(&ctx, &abc_corp, "ali").unwrap();
 
-        let xyz_dan = mgr.new_principal_with(&ctx, &xyz_corp, "dan").unwrap();
-        let xyz_ann = mgr.new_principal_with(&ctx, &xyz_corp, "ann").unwrap();
+        let xyz_dan = pm.new_principal_with(&ctx, &xyz_corp, "dan").unwrap();
+        let xyz_ann = pm.new_principal_with(&ctx, &xyz_corp, "ann").unwrap();
 
         // Creating Roles
-        let abc_developer = mgr.new_role_with(&ctx, &realm, &abc_corp, "Developer").unwrap();
-        let abc_admin = mgr.new_role_with_parent(&ctx, &realm, &abc_corp, &abc_developer, "Admin").unwrap();
+        let abc_developer = pm.new_role_with(&ctx, &realm, &abc_corp, "Developer").unwrap();
+        let abc_admin = pm.new_role_with_parent(&ctx, &realm, &abc_corp, &abc_developer, "Admin").unwrap();
 
-        let xyz_developer = mgr.new_role_with(&ctx, &realm, &xyz_corp, "Developer").unwrap();
-        let xyz_admin = mgr.new_role_with_parent(&ctx, &realm, &xyz_corp, &xyz_developer, "Admin").unwrap();
+        let xyz_developer = pm.new_role_with(&ctx, &realm, &xyz_corp, "Developer").unwrap();
+        let xyz_admin = pm.new_role_with_parent(&ctx, &realm, &xyz_corp, &xyz_developer, "Admin").unwrap();
 
         // Creating Resources
-        let project = mgr.new_resource_with(&ctx, &realm, "Project").unwrap();
-        let job = mgr.new_resource_with(&ctx, &realm, "Job").unwrap();
+        let project = pm.new_resource_with(&ctx, &realm, "Project").unwrap();
+        let job = pm.new_resource_with(&ctx, &realm, "Job").unwrap();
 
         // Creating claims for resources
-        let project_create_delete = mgr.new_claim_with(&ctx, &realm, &project, "(CREATE|DELETE)").unwrap();
-        let project_view = mgr.new_claim_with(&ctx, &realm, &project, "VIEW").unwrap();
-        let job_view_submit = mgr.new_claim_with(&ctx, &realm, &job, "(VIEW|SUBMIT)").unwrap();
+        let project_create_delete = pm.new_claim_with(&ctx, &realm, &project, "(CREATE|DELETE)").unwrap();
+        let project_view = pm.new_claim_with(&ctx, &realm, &project, "VIEW").unwrap();
+        let job_view_submit = pm.new_claim_with(&ctx, &realm, &job, "(VIEW|SUBMIT)").unwrap();
 
         // Mapping Principals and Claims to Roles
-        mgr.map_principal_to_role(&ctx, &abc_dave, &abc_developer).unwrap();
-        mgr.map_principal_to_role(&ctx, &abc_ali, &abc_admin).unwrap();
+        pm.map_principal_to_role(&ctx, &abc_dave, &abc_developer).unwrap();
+        pm.map_principal_to_role(&ctx, &abc_ali, &abc_admin).unwrap();
 
-        mgr.map_principal_to_role(&ctx, &xyz_dan, &xyz_developer).unwrap();
-        mgr.map_principal_to_role(&ctx, &xyz_ann, &xyz_admin).unwrap();
+        pm.map_principal_to_role(&ctx, &xyz_dan, &xyz_developer).unwrap();
+        pm.map_principal_to_role(&ctx, &xyz_ann, &xyz_admin).unwrap();
 
         // Map claims to policies as follows:
-        mgr.map_license_policy_to_claim(&ctx, &abc_policy, &project_create_delete, "com.abc.app", "").unwrap();
-        mgr.map_license_policy_to_claim(&ctx, &abc_policy, &project_view, "com.abc.app", "").unwrap();
-        mgr.map_license_policy_to_claim(&ctx, &abc_policy, &job_view_submit, "com.abc.app", "appSize < 1000").unwrap();
+        pm.map_license_policy_to_claim(&ctx, &abc_policy, &project_create_delete, "com.abc.app", "").unwrap();
+        pm.map_license_policy_to_claim(&ctx, &abc_policy, &project_view, "com.abc.app", "").unwrap();
+        pm.map_license_policy_to_claim(&ctx, &abc_policy, &job_view_submit, "com.abc.app", "appSize < 1000").unwrap();
 
-        mgr.map_license_policy_to_claim(&ctx, &xyz_policy, &project_create_delete, "com.xyz.app", "").unwrap();
-        mgr.map_license_policy_to_claim(&ctx, &xyz_policy, &project_view, "com.xyz.app", "").unwrap();
-        mgr.map_license_policy_to_claim(&ctx, &xyz_policy, &job_view_submit, "com.xyz.app", "appSize < 1000").unwrap();
+        pm.map_license_policy_to_claim(&ctx, &xyz_policy, &project_create_delete, "com.xyz.app", "").unwrap();
+        pm.map_license_policy_to_claim(&ctx, &xyz_policy, &project_view, "com.xyz.app", "").unwrap();
+        pm.map_license_policy_to_claim(&ctx, &xyz_policy, &job_view_submit, "com.xyz.app", "appSize < 1000").unwrap();
 
         // Map claims to roles as follows:
-        mgr.map_role_to_claim(&ctx, &abc_admin, &project_create_delete, "com.abc.app", "").unwrap();
-        mgr.map_role_to_claim(&ctx, &abc_developer, &project_view, "com.abc.app", "").unwrap();
-        mgr.map_role_to_claim(&ctx, &abc_developer, &job_view_submit, "com.abc.app", "appSize < 1000").unwrap();
+        pm.map_role_to_claim(&ctx, &abc_admin, &project_create_delete, "com.abc.app", "").unwrap();
+        pm.map_role_to_claim(&ctx, &abc_developer, &project_view, "com.abc.app", "").unwrap();
+        pm.map_role_to_claim(&ctx, &abc_developer, &job_view_submit, "com.abc.app", "appSize < 1000").unwrap();
 
-        mgr.map_role_to_claim(&ctx, &xyz_admin, &project_create_delete, "com.xyz.app", "").unwrap();
-        mgr.map_role_to_claim(&ctx, &xyz_developer, &project_view, "com.xyz.app", "").unwrap();
-        mgr.map_role_to_claim(&ctx, &xyz_developer, &job_view_submit, "com.xyz.app", "appSize < 1000").unwrap();
+        pm.map_role_to_claim(&ctx, &xyz_admin, &project_create_delete, "com.xyz.app", "").unwrap();
+        pm.map_role_to_claim(&ctx, &xyz_developer, &project_view, "com.xyz.app", "").unwrap();
+        pm.map_role_to_claim(&ctx, &xyz_developer, &job_view_submit, "com.xyz.app", "appSize < 1000").unwrap();
 
-        let security_mgr = SecurityManager::new(mgr);
+        let sm = SecurityManager::new(pm);
 
         // Ali for ABC should create project
         let mut req = PermissionRequest::new(realm.id.as_str(), abc_ali.id.as_str(), ActionType::CREATE, "Project", "com.abc.app");
         req.context.add("appSize", ValueWrapper::Int(500));
-        assert!(security_mgr.check(&req).is_ok());
+        assert!(sm.check(&req).is_ok());
 
         // Dave for ABC should be able to submit job
         let mut req = PermissionRequest::new(realm.id.as_str(), abc_dave.id.as_str(), ActionType::SUBMIT, "Job", "com.abc.app");
         req.context.add("appSize", ValueWrapper::Int(500));
-        assert!(security_mgr.check(&req).is_ok());
+        assert!(sm.check(&req).is_ok());
 
     }
 
@@ -1341,57 +1341,57 @@ mod tests {
         init();
         // Initialize context and repository
         let ctx = SecurityContext::new("0".into(), "0".into());
-        let cf = DefaultDataSource::new();
-        let locator = RepositoryLocator::new(&cf);
-        let mgr = locator.new_persistence_manager();
-        mgr.clear();
+        let ds = DefaultDataSource::new();
+        let locator = RepositoryLocator::new(&ds);
+        let pm = locator.new_persistence_manager();
+        pm.clear();
         // Bootstrapping dependent data
 
         // Creating security realm
-        let realm = mgr.new_realm_with(&ctx, "JobGrid").unwrap();
+        let realm = pm.new_realm_with(&ctx, "JobGrid").unwrap();
 
         // Creating organization
-        let abc_corp = mgr.new_org_with(&ctx, "ABC").unwrap();
-        let xyz_corp = mgr.new_org_with(&ctx, "XYZ").unwrap();
+        let abc_corp = pm.new_org_with(&ctx, "ABC").unwrap();
+        let xyz_corp = pm.new_org_with(&ctx, "XYZ").unwrap();
 
         // Create license policies
-        let _abc_policy = mgr.new_license_policy(&ctx, &abc_corp).unwrap();
-        let _xyz_policy = mgr.new_license_policy(&ctx, &xyz_corp).unwrap();
+        let _abc_policy = pm.new_license_policy(&ctx, &abc_corp).unwrap();
+        let _xyz_policy = pm.new_license_policy(&ctx, &xyz_corp).unwrap();
 
         // Creating Resources
-        let project = mgr.new_resource_with(&ctx, &realm, "Project").unwrap();
-        let job = mgr.new_resource_with(&ctx, &realm, "Job").unwrap();
+        let project = pm.new_resource_with(&ctx, &realm, "Project").unwrap();
+        let job = pm.new_resource_with(&ctx, &realm, "Job").unwrap();
 
         // Creating Users
-        let abc_dave = mgr.new_principal_with(&ctx, &abc_corp, "dave").unwrap();
-        let xyz_dan = mgr.new_principal_with(&ctx, &xyz_corp, "dan").unwrap();
+        let abc_dave = pm.new_principal_with(&ctx, &abc_corp, "dave").unwrap();
+        let xyz_dan = pm.new_principal_with(&ctx, &xyz_corp, "dan").unwrap();
 
         // Set Resource Quota
-        assert!(mgr.new_resource_quota_with(&ctx, &project, &abc_dave, "ABC Project", 1).is_ok());
-        assert!(mgr.new_resource_quota_with(&ctx, &job, &abc_dave, "ABC Jobs", 2).is_ok());
+        assert!(pm.new_resource_quota_with(&ctx, &project, &abc_dave, "ABC Project", 1).is_ok());
+        assert!(pm.new_resource_quota_with(&ctx, &job, &abc_dave, "ABC Jobs", 2).is_ok());
 
-        assert!(mgr.new_resource_quota_with(&ctx, &project, &xyz_dan, "XYZ Project", 2).is_ok());
-        assert!(mgr.new_resource_quota_with(&ctx, &job, &xyz_dan, "XYZ Jobs", 3).is_ok());
+        assert!(pm.new_resource_quota_with(&ctx, &project, &xyz_dan, "XYZ Project", 2).is_ok());
+        assert!(pm.new_resource_quota_with(&ctx, &job, &xyz_dan, "XYZ Jobs", 3).is_ok());
 
         // abc can have at most 1 project
-        assert!(mgr.new_resource_instance_with(&ctx, &project, &abc_dave, "ABC Project", "1", Status::COMPLETED).is_ok());
-        assert!(mgr.new_resource_instance_with(&ctx, &project, &abc_dave, "ABC Project", "2", Status::COMPLETED).is_err());
+        assert!(pm.new_resource_instance_with(&ctx, &project, &abc_dave, "ABC Project", "1", Status::COMPLETED).is_ok());
+        assert!(pm.new_resource_instance_with(&ctx, &project, &abc_dave, "ABC Project", "2", Status::COMPLETED).is_err());
 
         // abc can have at most 2 jobs
-        assert!(mgr.new_resource_instance_with(&ctx, &job, &abc_dave, "ABC Jobs", "1", Status::COMPLETED).is_ok());
-        assert!(mgr.new_resource_instance_with(&ctx, &job, &abc_dave, "ABC Jobs", "2", Status::COMPLETED).is_ok());
-        assert!(mgr.new_resource_instance_with(&ctx, &job, &abc_dave, "ABC Jobs", "3", Status::COMPLETED).is_err());
+        assert!(pm.new_resource_instance_with(&ctx, &job, &abc_dave, "ABC Jobs", "1", Status::COMPLETED).is_ok());
+        assert!(pm.new_resource_instance_with(&ctx, &job, &abc_dave, "ABC Jobs", "2", Status::COMPLETED).is_ok());
+        assert!(pm.new_resource_instance_with(&ctx, &job, &abc_dave, "ABC Jobs", "3", Status::COMPLETED).is_err());
 
         // xyz can have at most 2 project
-        assert!(mgr.new_resource_instance_with(&ctx, &project, &xyz_dan, "XYZ Project", "1", Status::COMPLETED).is_ok());
-        assert!(mgr.new_resource_instance_with(&ctx, &project, &xyz_dan, "XYZ Project", "2", Status::COMPLETED).is_ok());
-        assert!(mgr.new_resource_instance_with(&ctx, &project, &xyz_dan, "XYZ Project", "3", Status::COMPLETED).is_err());
+        assert!(pm.new_resource_instance_with(&ctx, &project, &xyz_dan, "XYZ Project", "1", Status::COMPLETED).is_ok());
+        assert!(pm.new_resource_instance_with(&ctx, &project, &xyz_dan, "XYZ Project", "2", Status::COMPLETED).is_ok());
+        assert!(pm.new_resource_instance_with(&ctx, &project, &xyz_dan, "XYZ Project", "3", Status::COMPLETED).is_err());
 
         // xyz can have at most 3 jobs
-        assert!(mgr.new_resource_instance_with(&ctx, &job, &xyz_dan, "XYZ Jobs", "1", Status::COMPLETED).is_ok());
-        assert!(mgr.new_resource_instance_with(&ctx, &job, &xyz_dan, "XYZ Jobs", "2", Status::COMPLETED).is_ok());
-        assert!(mgr.new_resource_instance_with(&ctx, &job, &xyz_dan, "XYZ Jobs", "3", Status::COMPLETED).is_ok());
-        assert!(mgr.new_resource_instance_with(&ctx, &job, &xyz_dan, "XYZ Jobs", "4", Status::COMPLETED).is_err());
+        assert!(pm.new_resource_instance_with(&ctx, &job, &xyz_dan, "XYZ Jobs", "1", Status::COMPLETED).is_ok());
+        assert!(pm.new_resource_instance_with(&ctx, &job, &xyz_dan, "XYZ Jobs", "2", Status::COMPLETED).is_ok());
+        assert!(pm.new_resource_instance_with(&ctx, &job, &xyz_dan, "XYZ Jobs", "3", Status::COMPLETED).is_ok());
+        assert!(pm.new_resource_instance_with(&ctx, &job, &xyz_dan, "XYZ Jobs", "4", Status::COMPLETED).is_err());
     }
 
     use chrono::NaiveDateTime;

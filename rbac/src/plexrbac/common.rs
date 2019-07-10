@@ -1,5 +1,6 @@
 //#![crate_name = "doc"]
 //![feature(proc_macro_hygiene, decl_macro, never_type)]
+extern crate url;
 
 use std::collections::HashMap;
 use plexrbac::utils::evaluator;
@@ -7,6 +8,7 @@ use plexrbac::utils::evaluator;
 use rocket::request::{self, Request, FromRequest};
 use rocket::outcome::Outcome::*;
 
+use self::url::{Url, ParseError};
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 ///
@@ -29,7 +31,21 @@ impl<'a, 'r> FromRequest<'a, 'r> for SecurityContext {
     fn from_request(req: &'a Request<'r>) -> request::Outcome<Self, ()> {
         let realm = req.headers().get_one("X-Realm").unwrap_or_else(||"");
         let principal = req.headers().get_one("X-Principal").unwrap_or_else(||"");
-        Success(SecurityContext::new(realm, principal))
+        let parsed_url = Url::parse(format!("https://localhost{}", req.uri()).as_str()).unwrap();
+        let dict: HashMap<_, _> = parsed_url.query_pairs().into_owned().collect();
+        let mut ctx = SecurityContext::new(realm, principal);
+        for (k,v) in dict {
+            if let Ok(f) = v.parse::<f64>() {
+                ctx.add(k.as_str(), ValueWrapper::Float(f));
+            } else if let Ok(i) = v.parse::<i64>() {
+                ctx.add(k.as_str(), ValueWrapper::Int(i));
+            } else if v == "true" || v == "false" {
+                ctx.add(k.as_str(), ValueWrapper::Bool(v == "true"));
+            } else {
+                ctx.add(k.as_str(), ValueWrapper::String(v));
+            }
+        } 
+        Success(ctx)
     }
 }
 

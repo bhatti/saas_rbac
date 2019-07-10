@@ -26,3 +26,6 @@ time = "0.1.42"
 version = "*"
 default-features = false
 features = ["tera_templates", "diesel_sqlite_pool", "serve", "json"]
+
+[dependencies.url]
+git = "https://github.com/servo/rust-url"

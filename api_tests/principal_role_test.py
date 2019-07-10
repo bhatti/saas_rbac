@@ -21,7 +21,7 @@ class PrincipalRoleTest(base_test.BaseTest):
         self.delete('/api/orgs/%s/principals/%s' % (self._org["id"], self._principal["id"]))
 
     def test_add_remove_principal_to_role(self):
-        resp = self.put('/api/orgs/%s/roles/%s/principals/%s?constraints=prin_scope&expired_at=%s' % (self._org["id"], self._role["id"], self._principal["id"], urllib.quote('2021-6-17T00:00:00+05:30', safe='')), {})
+        resp = self.put('/api/orgs/%s/roles/%s/principals/%s?max=10&constraints=prin_scope&expired_at=%s' % (self._org["id"], self._role["id"], self._principal["id"], urllib.quote('2033-6-17T00:00:00+05:30', safe='')), {})
         self.assertEquals(1, resp, json.dumps(resp))
         resp = self.delete('/api/orgs/%s/roles/%s/principals/%s' % (self._org["id"], self._role["id"], self._principal["id"]))
         self.assertEquals(1, resp, json.dumps(resp))

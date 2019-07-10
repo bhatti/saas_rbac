@@ -31,8 +31,7 @@ use rocket::fairing::AdHoc;
 // containing a function named `run`.
 embed_migrations!();
 
-use plexrbac::service::realm;
-use plexrbac::service::organization;
+use plexrbac::service::{realm, security, organization};
 use plexrbac::persistence::data_source::DbConn;
 use plexrbac::persistence::data_source::new_pool;
 
@@ -122,6 +121,7 @@ fn rocket() -> rocket::Rocket {
                organization::get_license,
                organization::delete_license
                    ])
+        .mount("/api/security", routes![security::check])
         .register(catchers![not_found])
         .manage(new_pool())
         .manage(Mutex::new(HashMap::<String, String>::new()))

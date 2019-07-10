@@ -38,7 +38,7 @@ pub struct AssociationForm {
 }
 
 impl<'a, 'r> FromRequest<'a, 'r> for AssociationForm {
-    type Error = std::convert::Infallible;
+    type Error = String;
 
     fn from_request(req: &'a Request<'r>) -> request::Outcome<Self, Self::Error> {
         let scope = req.get_query_value("scope").and_then(|r| r.ok()).unwrap_or("".into());
@@ -47,10 +47,10 @@ impl<'a, 'r> FromRequest<'a, 'r> for AssociationForm {
         let expired_at = req.get_query_value("expired_at").and_then(|r| r.ok()).unwrap_or("".into());
         let form = AssociationForm {scope: scope, constraints: constraints, effective_at: effective_at, expired_at: expired_at};
         if !form.effective_at.is_empty() && form.parse(form.effective_at.as_str()).is_err() {
-            //return Failure((Status::BadRequest, "effective_at date must be of in format YYY-MM-DD".to_string()));
+            return Failure((Status::BadRequest, "effective_at date must be of in format YYY-MM-DD".to_string()));
         }
         if !form.expired_at.is_empty() && form.parse(form.expired_at.as_str()).is_err() {
-            //return Failure((Status::BadRequest, "expired_at date must be of in format YYY-MM-DD".to_string()));
+            return Failure((Status::BadRequest, "expired_at date must be of in format YYY-MM-DD".to_string()));
         }
         Success(form)
     }
